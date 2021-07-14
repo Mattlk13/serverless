@@ -1,6 +1,6 @@
 <!--
 title: Hello World Example
-menuText: Hello World Example
+menuText: Hello World
 description: Example of creating a Hello World function in Node.js and Python with the Serverless framework
 layout: Doc
 -->
@@ -22,5 +22,6 @@ Pick your language of choice:
 - [C#](./csharp)
 - [F#](./fsharp)
 - [Go](./go)
+- [Ruby](./ruby)
 
 [View all examples](https://www.serverless.com/framework/docs/providers/aws/examples/)

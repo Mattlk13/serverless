@@ -35,6 +35,7 @@ serverless invoke local --function functionName
 * `--docker` Enable docker support for NodeJS/Python/Ruby/Java. Enabled by default for other
   runtimes.
 * `--docker-arg` Pass additional arguments to docker run command when `--docker` is option used. e.g. `--docker-arg '-p 9229:9229' --docker-arg '-v /var:/host_var'`
+* `--skip-package` Use the last packaged files from `.serverless` directory. This will speed up invocation significantly as we can skip the packaging of all files before every invoke
 
 ## Environment
 
@@ -111,6 +112,23 @@ serverless invoke local -f functionName -e VAR1=value1
 
 serverless invoke local -f functionName -e VAR1=value1 -e VAR2=value2
 ```
+
+When using [AWS CloudFormation intrinsic functions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html) as environment variables value, **only Fn::ImportValue and Ref** will be automatically resolved for function invocation. Other intrinsic functions use will result in the corresponding configuration object passed in the function as environment variable.
+
+```yml
+functions:
+  functionName:
+    handler: handler.main
+    environment:
+      EXT_TABLE_NAME:
+        Fn::ImportValue: exported-tableName
+      REF_TABLE_NAME:
+        Ref: myTable
+      INT_TABLE_NAME:
+        Fn::GetAtt: [myTable, Arn]
+```
+
+In the above example, `EXT_TABLE_NAME` and `REF_TABLE_NAME` will be resolved to the exported value `exported-tableName` and `myTable` physical ID respectively while `INT_TABLE_NAME` will not be resolved.
 
 ### Limitations
 

@@ -35,11 +35,10 @@ functions:
     handler: handler.hello
     events:
       - eventHub:
-        x-azure-settings:
-          name: item #<string>, default - "myEventHubMessage", specifies which name it's available on `context.bindings`
-          path: hello #<string>, specifies the Name of the Event Hub
-          consumerGroup: $Default #<string>, default - "$Default", specifies the consumerGroup to listen with
-          connection: EventHubsConnection #<string>, App Setting/environment variable which contains Event Hubs Namespace Connection String
+        name: item #<string>, default - "myEventHubMessage", specifies which name is available on `context.bindings`
+        path: hello #<string>, specifies the Name of the Event Hub
+        consumerGroup: $Default #<string>, default - "$Default", specifies the consumerGroup to listen with
+        connection: EventHubsConnection #<string>, App Setting/environment variable which contains Event Hubs Namespace Connection String
 ```
 
 ```javascript
@@ -47,7 +46,7 @@ functions:
 
 'use strict';
 
-module.exports.hello = function(context, item) {
+module.exports.hello = function (context, item) {
   context.log('Received item: ${item}');
   context.done();
 };

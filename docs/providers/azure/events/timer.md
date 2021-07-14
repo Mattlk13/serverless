@@ -34,9 +34,8 @@ functions:
     handler: handler.hello
     events:
       - timer:
-        x-azure-settings:
-          name: timerObj #<string>, default - "myTimer", specifies which name it's available on `context.bindings`
-          schedule: 0 */5 * * * * #<string>, cron expression to run on
+        name: timerObj #<string>, default - "myTimer", specifies which name is available on `context.bindings`
+        schedule: 0 */5 * * * * #<string>, cron expression to run on
 ```
 
 ```javascript
@@ -44,7 +43,7 @@ functions:
 
 'use strict';
 
-module.exports.hello = function(context, timerObj) {
+module.exports.hello = function (context, timerObj) {
   context.log('Timer ran');
   context.done();
 };

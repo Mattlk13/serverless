@@ -1,6 +1,6 @@
 <!--
 title: Hello World F# Example
-menuText: Hello World F# Example
+menuText: F#
 description: Create a F# Hello World Lambda function
 layout: Doc
 -->
@@ -37,7 +37,7 @@ Using the `create` command we can specify one of the available [templates](https
 
 The `--path` or shorthand `-p` is the location to be created with the template service files. Change directories into this new folder.
 
-## 2. Build using .NET Core 2.X CLI tools and create zip package
+## 2. Build using .NET Core 3.1.x CLI tools and create zip package
 
 ```
 # Linux or Mac OS

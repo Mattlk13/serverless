@@ -1,7 +1,7 @@
 <!--
 title: Serverless Framework Commands - Azure Functions - Remove
 menuText: remove
-menuOrder: 8
+menuOrder: 7
 description: Remove a deployed Service and all of its Azure Functions Functions, Events and Resources
 layout: Doc
 -->
@@ -20,6 +20,14 @@ current working directory, from the provider.
 ```bash
 serverless remove
 ```
+
+## Options
+
+- `--resourceGroup` or `-g` - Specify the resource group name
+- `--stage` or `-s` - Specify stage name
+- `--region` or `-r` - Specify region name
+- `--subscriptionId` or `-i` - Specify subscription ID
+- `--force` - Bypass delete check
 
 ## Provided lifecycle events
 

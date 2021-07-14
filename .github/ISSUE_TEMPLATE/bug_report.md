@@ -1,33 +1,61 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: '🐛 Bug report'
+about: Create a bug report
 ---
 
+<!-- ⚠️⚠️ Acknowledge ALL below remarks -->
+<!-- ⚠️⚠️ Request may not be processed if it doesn't meet outlined criteria -->
+
+<!-- ⚠️⚠️ Ensure you're using *latest* version of a Framework -->
+<!-- ⚠️⚠️ If you're uncertain you deal with a bug, ask first at https://forum.serverless.com -->
+<!-- ⚠️⚠️ If your issue is influenced by a plugin, report at plugin repository, not here -->
+<!-- ⚠️⚠️ Search existing issues to avoid creating duplicates  -->
+
+<!-- ⚠️⚠️ Answer ALL the questions below -->
+
 <!--
-1. If you have a question and not a bug report please ask first at http://forum.serverless.com
-2. Please check if an issue already exists. This bug may have already been documented
-3. Check out and follow our Guidelines: https://github.com/serverless/serverless/blob/master/CONTRIBUTING.md
-4. Fill out the whole template so we have a good overview on the issue
-5. Do not remove any section of the template. If something is not applicable leave it empty but leave it in the Issue
-6. Please follow the template, otherwise we'll have to ask you to update it
+Q1: Describe the issue
 -->
 
-# This is a Bug Report
+⚠️⚠️ REPLACE WITH DESCRIPTION
 
-## Description
+<!--
+Q2: Provide (in below placeholder) FULL content of serverless.yml, ensuring that:
+• It consistently reproduces described issue
+• It's as minimal as possible
+• There's no plugins involved (plugin related issues need to be reported at plugin repositories)
+• Has sensitive parts masked out
+-->
 
-- What went wrong?
-- What did you expect should have happened?
-- What was the config you used?
-- What stacktrace or error message from your provider did you see?
+<details>
+<summary><code>serverless.yml</code></summary>
 
-Similar or dependent issues:
+```yaml
+# ⚠️⚠️ REPLACE THIS COMMENT WITH FULL serverless.yml CONTENT
+```
 
-- #12345
+</details>
 
-## Additional Data
+<!--
+Q3: Provide (in below placeholder) FULL name and output of the command that exposes the problem.
+       Note: Ensure SLS_DEBUG=* env var for verbose debug output
+-->
 
-- **_Serverless Framework Version you're using_**:
-- **_Operating System_**:
-- **_Stack Trace_**:
-- **_Provider Error messages_**:
+<details>
+<summary><b><code>⚠️⚠️ REPLACE WITH FULL COMMAND NAME</code> output</b></summary>
+
+```
+⚠️⚠️ REPLACE WITH FULL COMMAND OUTPUT
+```
+
+</details>
+
+<!--
+Q4: Provide (in below placeholder) output of serverless --version
+-->
+
+<b>Installed version</b>
+
+```
+⚠️⚠️ REPLACE WITH `serverless --version` OUTPUT
+```

@@ -46,7 +46,7 @@ URL paths for the serverless functions are prefixed with the function name, e.g.
 
 'use strict';
 
-module.exports.hello = function(params) {
+module.exports.hello = function (params) {
   // Your function handler
   return { payload: 'Hello world!' };
 };
@@ -86,7 +86,7 @@ functions:
 
 'use strict';
 
-module.exports.handler = function(params) {
+module.exports.handler = function (params) {
   const name = params.name || 'stranger';
   // Your function handler
   return { payload: `Hello ${name}!` };
@@ -96,7 +96,7 @@ module.exports.handler = function(params) {
 The body of the incoming request is parsed as JSON and passed as the
 `params` argument to the function handler.
 
-The returned JavaScript object will be serialised as JSON and returned in the
+The returned JavaScript object will be serialized as JSON and returned in the
 HTTP response body.
 
 ### HTTP Endpoint with Extended Options
@@ -129,7 +129,7 @@ enabled for all source domains.
 
 ### URL Path Parameters
 
-The API Gateway service [supports path parameters](https://github.com/apache/incubator-openwhisk/blob/master/docs/apigateway.md#exposing-multiple-web-actions) in user-defined HTTP paths. This allows functions to handle URL paths which include templated values, like resource identifiers.
+The API Gateway service [supports path parameters](https://github.com/apache/openwhisk/blob/master/docs/apigateway.md#exposing-multiple-web-actions) in user-defined HTTP paths. This allows functions to handle URL paths which include templated values, like resource identifiers.
 
 Path parameters are identified using the `{param_name}` format in the URL path. The API Gateway sends the full matched path value in the `__ow_path` field of the event parameters.
 
@@ -152,5 +152,5 @@ This feature comes with the following restrictions:
 ### Security
 
 Functions exposed through the API Gateway service are automatically converted
-into Web Actions during deployment. The framework [secures Web Actions for HTTP endpoints](https://github.com/apache/incubator-openwhisk/blob/master/docs/webactions.md#securing-web-actions) using the `require-whisk-auth` annotation. If the `require-whisk-auth`
+into Web Actions during deployment. The framework [secures Web Actions for HTTP endpoints](https://github.com/apache/openwhisk/blob/master/docs/webactions.md#securing-web-actions) using the `require-whisk-auth` annotation. If the `require-whisk-auth`
 annotation is manually configured, the existing annotation value is used, otherwise a random token is automatically generated.

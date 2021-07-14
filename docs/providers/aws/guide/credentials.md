@@ -55,7 +55,7 @@ If you do not wish to use the Serverless Framework Dashboard to set up an AWS Ac
 
 [Watch the video guide on setting up credentials](https://www.youtube.com/watch?v=KngM5bfpttA)
 
-Services in AWS, such as AWS Lambda, require that you provide credentials when you access them to ensure that you have permission to access the resources owned by that service. To accomplish this AWS recommends that you use AWS Identity and Access Management (IAM).
+Services in AWS, such as [AWS Lambda](https://serverless.com/aws-lambda/), require that you provide credentials when you access them to ensure that you have permission to access the resources owned by that service. To accomplish this AWS recommends that you use AWS Identity and Access Management (IAM).
 
 Follow these steps to create an IAM user for the Serverless Framework:
 
@@ -149,7 +149,7 @@ You can even set up different profiles for different accounts, which can be used
 service: new-service
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: dev
   profile: devProfile
 ```
@@ -171,10 +171,9 @@ aws_secret_access_key=***************
 
 Now you can switch per project (/ API) by executing once when you start your project:
 
-`export AWS_PROFILE="profileName2" && export AWS_REGION=eu-west-1`.
+`export AWS_PROFILE="profileName2"`.
 
 in the Terminal. Now everything is set to execute all the `serverless` CLI options like `sls deploy`.
-The AWS region setting is to prevent issues with specific services, so adapt if you need another default region.
 
 ##### Using the `aws-profile` option
 
@@ -183,6 +182,10 @@ You can always specify the profile which should be used via the `aws-profile` op
 ```bash
 serverless deploy --aws-profile devProfile
 ```
+
+##### Using web identity token
+
+To use web identity token authentication the `AWS_WEB_IDENTITY_TOKEN_FILE` and `AWS_ROLE_ARN` environment need to be set. It is automatically set if you specify a service account in AWS EKS.
 
 #### Per Stage Profiles
 
@@ -194,11 +197,9 @@ This example `serverless.yml` snippet will load the profile depending upon the s
 service: new-service
 provider:
   name: aws
-  runtime: nodejs10.x
-  stage: ${opt:stage, self:custom.defaultStage}
-  profile: ${self:custom.profiles.${self:provider.stage}}
+  runtime: nodejs12.x
+  profile: ${self:custom.profiles.${sls:stage}}
 custom:
-  defaultStage: dev
   profiles:
     dev: devProfile
     prod: prodProfile

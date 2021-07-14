@@ -35,9 +35,8 @@ functions:
     handler: handler.hello
     events:
       - queue: hello
-        x-azure-settings:
-          name: item #<string>, default - "myQueueItem", specifies which name it's available on `context.bindings`
-          connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", environment variable which contains Storage Account Connection String
+        name: item #<string>, default - "myQueueItem", specifies which name is available on `context.bindings`
+        connection: AzureWebJobsStorage #<string>, default - "AzureWebJobsStorage", environment variable which contains Storage Account Connection String
 ```
 
 ```javascript
@@ -45,7 +44,7 @@ functions:
 
 'use strict';
 
-module.exports.hello = function(context, item) {
+module.exports.hello = function (context, item) {
   context.log('Received item: ${item}');
   context.done();
 };

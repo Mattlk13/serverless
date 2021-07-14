@@ -31,13 +31,14 @@ provider:
 layers:
   hello:
     path: layer-dir # required, path to layer contents on disk
-    name: ${self:provider.stage}-layerName # optional, Deployed Lambda layer name
+    name: ${sls:stage}-layerName # optional, Deployed Lambda layer name
     description: Description of what the lambda layer does # optional, Description to publish to AWS
     compatibleRuntimes: # optional, a list of runtimes this layer is compatible with
-      - python3.7
+      - python3.8
     licenseInfo: GPLv3 # optional, a string specifying license information
-    allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
-      - '*'
+    # allowedAccounts: # optional, a list of AWS account IDs allowed to access this layer.
+    #   - '*'
+    # note: uncommenting this will give all AWS users access to this layer unconditionally.
     retain: false # optional, false by default. If true, layer versions are not deleted as new ones are created
 ```
 
@@ -95,6 +96,8 @@ layers:
       exclude:
         - layerSourceTarball.tar.gz
 ```
+
+Keep in mind that all `include` and `exclude` patterns (even when inherited from the service config) are resolved against the layer's `path` and not the service `path`.
 
 You can also specify a prebuilt archive to create your layer. When you do this, you do not need to specify the `path` element of your layer.
 
@@ -172,4 +175,24 @@ functions:
     handler: handler.hello
     layers:
       - { Ref: TestLambdaLayer }
+```
+
+You can also configure layers at the service level. EG:
+
+```yml
+# serverless.yml
+service: myService
+
+provider:
+  name: aws
+  runtime: python3.8
+  layers:
+    - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer1
+    - arn:aws:lambda:us-east-1:xxxxxxxxxxxxx:layer:xxxxx:mylayer2
+
+functions:
+  hello1:
+    handler: handler.hello1
+  hello2:
+    handler: handler.hello2
 ```

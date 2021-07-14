@@ -26,7 +26,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   memorySize: 512 # optional, in MB, default is 1024
   timeout: 10 # optional, in seconds, default is 6
   versionFunctions: false # optional, default is true
@@ -36,11 +36,12 @@ provider:
 functions:
   hello:
     handler: handler.hello # required, handler set in AWS Lambda
-    name: ${self:provider.stage}-lambdaName # optional, Deployed Lambda name
+    name: ${sls:stage}-lambdaName # optional, Deployed Lambda name
     description: Description of what the lambda function does # optional, Description to publish to AWS
     runtime: python2.7 # optional overwrite, default is provider runtime
     memorySize: 512 # optional, in MB, default is 1024
     timeout: 10 # optional, in seconds, default is 6
+    provisionedConcurrency: 3 # optional, Count of provisioned lambda instances
     reservedConcurrency: 5 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
     tracing: PassThrough # optional, overwrite, can be 'Active' or 'PassThrough'
 ```
@@ -49,7 +50,7 @@ The `handler` property points to the file and module containing the code you wan
 
 ```javascript
 // handler.js
-module.exports.functionOne = function(event, context, callback) {};
+module.exports.functionOne = function (event, context, callback) {};
 ```
 
 You can add as many functions as you want within this property.
@@ -61,7 +62,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 functions:
   functionOne:
@@ -81,7 +82,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   memorySize: 512 # will be inherited by all functions
 
 functions:
@@ -97,7 +98,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 functions:
   functionOne:
@@ -125,7 +126,7 @@ deleteFoo:
 
 ## Permissions
 
-Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role. You can set permission policy statements within this role via the `provider.iamRoleStatements` property.
+Every AWS Lambda function needs permission to interact with other AWS infrastructure resources within your account. These permissions are set via an AWS IAM Role. You can set permission policy statements within this role via the `provider.iam.role.statements` property.
 
 ```yml
 # serverless.yml
@@ -133,18 +134,20 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
-  iamRoleStatements: # permissions for all of your functions can be set here
-    - Effect: Allow
-      Action: # Gives permission to DynamoDB tables in a specific region
-        - dynamodb:DescribeTable
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource: 'arn:aws:dynamodb:us-east-1:*:*'
+  runtime: nodejs12.x
+  iam:
+    role:
+      statements: # permissions for all of your functions can be set here
+        - Effect: Allow
+          Action: # Gives permission to DynamoDB tables in a specific region
+            - dynamodb:DescribeTable
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 'arn:aws:dynamodb:us-east-1:*:*'
 
 functions:
   functionOne:
@@ -159,22 +162,24 @@ Another example:
 service: myService
 provider:
   name: aws
-  iamRoleStatements:
-    - Effect: 'Allow'
-      Action:
-        - 's3:ListBucket'
-      # You can put CloudFormation syntax in here.  No one will judge you.
-      # Remember, this all gets translated to CloudFormation.
-      Resource: { 'Fn::Join': ['', ['arn:aws:s3:::', { 'Ref': 'ServerlessDeploymentBucket' }]] }
-    - Effect: 'Allow'
-      Action:
-        - 's3:PutObject'
-      Resource:
-        Fn::Join:
-          - ''
-          - - 'arn:aws:s3:::'
-            - 'Ref': 'ServerlessDeploymentBucket'
-            - '/*'
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 's3:ListBucket'
+          # You can put CloudFormation syntax in here.  No one will judge you.
+          # Remember, this all gets translated to CloudFormation.
+          Resource: { 'Fn::Join': ['', ['arn:aws:s3:::', { 'Ref': 'ServerlessDeploymentBucket' }]] }
+        - Effect: 'Allow'
+          Action:
+            - 's3:PutObject'
+          Resource:
+            Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - 'Ref': 'ServerlessDeploymentBucket'
+                - '/*'
 
 functions:
   functionOne:
@@ -193,6 +198,91 @@ provider:
 ```
 
 See the documentation about [IAM](./iam.md) for function level IAM roles.
+
+## Referencing container image as a target
+
+Alternatively lambda environment can be configured through docker images. Image published to AWS ECR registry can be referenced as lambda source (check [AWS Lambda – Container Image Support](https://aws.amazon.com/blogs/aws/new-for-aws-lambda-container-image-support/)). In addition, you can also define your own images that will be built locally and uploaded to AWS ECR registry.
+
+Serverless will create an ECR repository for your image, but it currently does not manage updates to it. An ECR repository is created only for new services or the first time that a function configured with an `image` is deployed. In service configuration, you can configure the ECR repository to scan for CVEs via the `provider.ecr.scanOnPush` property, which is `false` by default. (See [documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html))
+
+In service configuration, images can be configured via `provider.ecr.images`. To define an image that will be built locally, you need to specify `path` property, which should point to valid docker context directory. Optionally, you can also set `file` to specify Dockerfile that should be used when building an image. It is also possible to define images that already exist in AWS ECR repository. In order to do that, you need to define `uri` property, which should follow `<account>.dkr.ecr.<region>.amazonaws.com/<repository>@<digest>` or `<account>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>` format. Additionally, with `buildArgs` property, you can define arguments that will be passed to `docker build` command with `--build-arg` flag. They might be later referenced via `ARG` within your `Dockerfile`. The `cacheFrom` property can be used to specify which images to use as a source for layer caching in the `docker build` command with `--cache-from` flag. When `uri` is defined for an image, `buildArgs` and `cacheFrom` cannot be defined.
+
+Example configuration
+
+```yml
+service: service-name
+provider:
+  name: aws
+  ecr:
+    scanOnPush: true
+    images:
+      baseimage:
+        path: ./path/to/context
+        file: Dockerfile.dev
+        buildArgs:
+          STAGE: ${opt:stage}
+        cacheFrom:
+          - my-image:latest
+      anotherimage:
+        uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
+```
+
+When configuring functions, images should be referenced via `image` property, which can point to an image already defined in `provider.ecr.images` or directly to an existing AWS ECR image, following the same format as `uri` above.
+Both `handler` and `runtime` properties are not supported when `image` is used.
+
+Example configuration:
+
+```yml
+service: service-name
+provider:
+  name: aws
+  ecr:
+    images:
+      baseimage:
+        path: ./path/to/context
+
+functions:
+  hello:
+    image: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
+  world:
+    image: baseimage
+```
+
+It is also possible to provide additional image configuration via `workingDirectory`, `entryPoint` and `command` properties of to `functions[].image`. The `workingDirectory` accepts path in form of string, where both `entryPoint` and `command` needs to be defined as a list of strings, following "exec form" format. In order to provide additional image config properties, `functions[].image` has to be defined as an object, and needs to define either `uri` pointing to an existing AWS ECR image or `name` property, which references image already defined in `provider.ecr.images`.
+
+Example configuration:
+
+```yml
+service: service-name
+provider:
+  name: aws
+  ecr:
+    images:
+      baseimage:
+        path: ./path/to/context
+
+functions:
+  hello:
+    image:
+      uri: 000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38
+      workingDirectory: /workdir
+      command:
+        - executable
+        - flag
+      entryPoint:
+        - executable
+        - flag
+  world:
+    image:
+      name: baseimage
+      command:
+        - command
+      entryPoint:
+        - executable
+        - flag
+```
+
+During the first deployment when locally built images are used, Framework will automatically create a dedicated ECR repository to store these images, with name `serverless-<service>-<stage>`. Currently, the Framework will not remove older versions of images uploaded to ECR as they still might be in use by versioned functions. During `sls remove`, the created ECR repository will be removed. During deployment, Framework will attempt to `docker login` to ECR if needed. Depending on your local configuration, docker authorization token might be stored unencrypted. Please refer to documentation for more details: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
 ## VPC Configuration
 
@@ -252,7 +342,7 @@ The Lambda function execution role must have permissions to create, describe and
 
 **VPC Lambda Internet Access**
 
-By default, when a Lambda function is executed inside a VPC, it loses internet access and some resources inside AWS may become unavailable. In order for S3 resources and DynamoDB resources to be available for your Lambda function running inside the VPC, a VPC end point needs to be created. For more information please check [VPC Endpoint for Amazon S3](https://aws.amazon.com/blogs/aws/new-vpc-endpoint-for-amazon-s3/).
+By default, when a Lambda function is executed inside a VPC, it loses internet access and some resources inside AWS may become unavailable. In order for S3 resources and [DynamoDB](https://serverless.com/dynamodb/) resources to be available for your Lambda function running inside the VPC, a VPC end point needs to be created. For more information please check [VPC Endpoint for Amazon S3](https://aws.amazon.com/blogs/aws/new-vpc-endpoint-for-amazon-s3/).
 In order for other services such as Kinesis streams to be made available, a NAT Gateway needs to be configured inside the subnets that are being used to run the Lambda, for the VPC used to execute the Lambda. For more information, please check [Enable Outgoing Internet Access within VPC](https://medium.com/@philippholly/aws-lambda-enable-outgoing-internet-access-within-vpc-8dd250e11e12)
 
 ## Environment Variables
@@ -360,18 +450,27 @@ To publish Lambda Layers, check out the [Layers](./layers.md) documentation.
 
 By default, the framework will create LogGroups for your Lambdas. This makes it easy to clean up your log groups in the case you remove your service, and make the lambda IAM permissions much more specific and secure.
 
+You can opt out of the default behavior by setting `disableLogs: true`
+
+```yml
+functions:
+  hello:
+    handler: handler.hello
+    disableLogs: true
+```
+
 ## Versioning Deployed Functions
 
 By default, the framework creates function versions for every deploy. This behavior is optional, and can be turned off in cases where you don't invoke past versions by their qualifier. If you would like to do this, you can invoke your functions as `arn:aws:lambda:....:function/myFunc:3` to invoke version 3 for example.
 
-To turn off this feature, set the provider-level option `versionFunctions`.
+Versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
+
+To turn off function versioning, set the provider-level option `versionFunctions`.
 
 ```yml
 provider:
   versionFunctions: false
 ```
-
-These versions are not cleaned up by serverless, so make sure you use a plugin or other tool to prune sufficiently old versions. The framework can't clean up versions because it doesn't have information about whether older versions are invoked or not. This feature adds to the number of total stack outputs and resources because a function version is a separate resource from the function it refers to.
 
 ## Dead Letter Queue (DLQ)
 
@@ -390,7 +489,7 @@ service: service
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
 
 functions:
   hello:
@@ -406,7 +505,7 @@ We're working on a fix so that SQS queue arns will be supported in the future.
 
 ## KMS Keys
 
-AWS Lambda uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest.
+[AWS Lambda](https://serverless.com/aws-lambda/) uses [AWS Key Management Service (KMS)](https://aws.amazon.com/kms/) to encrypt your environment variables at rest.
 
 The `awsKmsKeyArn` config variable enables you a way to define your own KMS key which should be used for encryption.
 
@@ -443,7 +542,7 @@ service: myService
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   tracing:
     lambda: true
 ```
@@ -458,4 +557,58 @@ functions:
   goodbye:
     handler: handler.goodbye
     tracing: PassThrough
+```
+
+## Asynchronous invocation
+
+When intention is to invoke function asynchronously you may want to configure following additional settings:
+
+### Destinations
+
+[destination targets](https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations)
+
+Target can be the other lambdas you also deploy with a service or other qualified target (externally managed lambda, EventBridge event bus, SQS queue or SNS topic) which you can address via its ARN
+
+```yml
+functions:
+  asyncHello:
+    handler: handler.asyncHello
+    destinations:
+      onSuccess: otherFunctionInService
+      onFailure: arn:aws:sns:us-east-1:xxxx:some-topic-name
+```
+
+### Maximum Event Age and Maximum Retry Attempts
+
+`maximumEventAge` accepts values between 60 seconds and 6 hours, provided in seconds.
+`maximumRetryAttempts` accepts values between 0 and 2.
+
+```yml
+functions:
+  asyncHello:
+    handler: handler.asyncHello
+    maximumEventAge: 7200
+    maximumRetryAttempts: 1
+```
+
+## EFS Configuration
+
+You can use [Amazon EFS with Lambda](https://docs.aws.amazon.com/lambda/latest/dg/services-efs.html) by adding a `fileSystemConfig` property in the function configuration in `serverless.yml`. `fileSystemConfig` should be an object that contains the `arn` and `localMountPath` properties. The `arn` property should reference an existing EFS Access Point, where the `localMountPath` should specify the absolute path under which the file system will be mounted. Here's an example configuration:
+
+```yml
+# serverless.yml
+service: service-name
+provider: aws
+
+functions:
+  hello:
+    handler: handler.hello
+    fileSystemConfig:
+      localMountPath: /mnt/example
+      arn: arn:aws:elasticfilesystem:us-east-1:111111111111:access-point/fsap-0d0d0d0d0d0d0d0d0
+    vpc:
+      securityGroupIds:
+        - securityGroupId1
+      subnetIds:
+        - subnetId1
 ```

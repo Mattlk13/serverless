@@ -9,30 +9,96 @@ menuItems:
   - {menuText: Apache OpenWhisk Guide, path: /framework/docs/providers/openwhisk/guide/quick-start}
   - {menuText: Google Functions Guide, path: /framework/docs/providers/google/guide/quick-start}
   - {menuText: Kubeless Guide, path: /framework/docs/providers/kubeless/guide/quick-start}
+  - {menuText: Knative Guide, path: /framework/docs/providers/knative/guide/quick-start}
   - {menuText: Spotinst Guide, path: /framework/docs/providers/spotinst/guide/quick-start}
   - {menuText: Fn Guide, path: /framework/docs/providers/fn/guide/quick-start}
   - {menuText: Cloudflare Workers Guide, path: /framework/docs/providers/cloudflare/guide/quick-start}
+  - {menuText: Alibaba Guide , path: /framework/docs/providers/aliyun/guide/quick-start}
+  - {menuText: Tencent Guide , path: /framework/docs/providers/tencent/guide/quick-start}
 -->
 
-# Getting Started with the Serverless Framework and AWS
+# Get started with Serverless Framework Open Source & AWS
 
-First things first, let's get the Serverless Framework open source CLI installed on your machine.
+Getting started with Serverless Framework’s Open Source CLI and AWS takes only a few minutes. Install as a standalone binary, or with npm.
+
+## Install as a standalone binary
+
+### MacOS/Linux
+
+To install the latest version, run this command in your terminal:
 
 ```bash
-# Install the serverless cli
-npm install -g serverless
-
-# Or, update the serverless cli from a previous version
-npm update -g serverless
+curl -o- -L https://slss.io/install | bash
 ```
 
-If you don’t already have **[Node 6](https://nodejs.org/en/download/package-manager/)** or higher on your machine, you’ll need to do that first.
-
-Once you have the Serverless Framework installed, simply run the ‘serverless’ command and follow the prompts. In no time you will have deployed your first serverless app using the Serverless Framework **[CLI](./providers/)** and configured your Serverless Framework **[Dashboard](./dashboard/)** account to automatically monitor your serverless app, generate alerts, and much more.
+To install an specific version you may set a VERSION variable, for example:
 
 ```bash
-# Create and deploy a new service/project
+curl -o- -L https://slss.io/install | VERSION=2.21.1 bash
+```
+
+Then open another terminal window to run `serverless` program.
+
+### Windows
+
+Install with [Chocolatey](https://chocolatey.org/):
+
+```bash
+choco install serverless
+```
+
+### via npm
+
+_Note: If you don’t already have [Node](https://nodejs.org/en/download/package-manager/) on your machine, you’ll need to install it first. We suggest using the latest LTS version of NodeJS._
+
+Install the serverless CLI:
+
+```bash
+npm install -g serverless
+```
+
+## Initial setup
+
+Run below command and follow the prompts
+
+```bash
 serverless
 ```
 
-Want to try out the Serverless Framework on a different cloud provider? Click on any of the cloud provider quick start guides, to the left, to get started.
+_Note: Users in China are presented with setup centered around chinese [Tencent](https://intl.cloud.tencent.com/) provider. If you're based in China and prefer to be presented with steps as outside of China ensure `SERVERLESS_PLATFORM_VENDOR=aws` in your environment_
+
+## Upgrade
+
+### MacOS/Linux
+
+```bash
+serverless upgrade
+```
+
+### Windows
+
+```bash
+choco upgrade serverless
+```
+
+### via npm
+
+```bash
+npm update -g serverless
+```
+
+## Set up your free Pro account
+
+Learn more about [Serverless Framework Pro](https://serverless.com/pro/) and [sign up for free](https://app.serverless.com).
+
+Once you’ve signed up for Pro, login to your Pro dashboard from the CLI:
+
+```bash
+serverless login
+```
+
+You can either add a new service in your dashboard, or with the CLI, using the command:
+
+```bash
+serverless
+```

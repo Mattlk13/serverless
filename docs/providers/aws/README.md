@@ -1,6 +1,7 @@
 <!--
 title: Serverless - AWS Documentation
 menuText: AWS
+menuOrder: 1
 layout: Doc
 -->
 
@@ -14,12 +15,10 @@ layout: Doc
 
 <div class="docsSections">
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./guide/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_guide.png" alt="Serverless Framework AWS Lambda Guide" width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>Guides</h4>
     </div>
-    <div class="test">
+    <div class="docsProviderItems">
       <ul>
         <li><a href="./guide/intro.md">Intro</a></li>
         <li><a href="./guide/installation.md">Installation</a></li>
@@ -41,12 +40,10 @@ layout: Doc
   </div>
 
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./cli-reference/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_cli.png" alt="Serverless Framework AWS Lambda CLI Reference" width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>CLI references</h4>
     </div>
-    <div>
+    <div class="docsProviderItems">
       <ul>
         <li><a href="./cli-reference/config-credentials.md">Config Credentials</a></li>
         <li><a href="./cli-reference/create.md">Create</a></li>
@@ -75,14 +72,13 @@ layout: Doc
   </div>
 
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./events/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_events.png" alt="Serverless Framework AWS Lambda Events"  width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>Events</h4>
     </div>
-    <div>
+    <div class="docsProviderItems">
       <ul>
         <li><a href="./events/apigateway.md">API Gateway</a></li>
+        <li><a href="./events/http-api.md">HTTP API</a></li>
         <li><a href="./events/websocket.md">Websocket</a></li>
         <li><a href="./events/streams.md">Streams</a></li>
         <li><a href="./events/s3.md">S3</a></li>
@@ -96,19 +92,21 @@ layout: Doc
         <li><a href="./events/cloudwatch-event.md">CloudWatch Event</a></li>
         <li><a href="./events/cloudwatch-log.md">CloudWatch Log</a></li>
         <li><a href="./events/event-bridge.md">EventBridge</a></li>
+        <li><a href="./events/cloudfront.md">CloudFront</a></li>
         <li><a href="./events/cognito-user-pool.md">Cognito User Pool</a></li>
+        <li><a href="./events/kafka.md">Self Managed Apache Kafka</a></li>
+        <li><a href="./events/msk.md">MSK</a></li>
+        <li><a href="./events/iot-fleet-provisioning.md">IoT Fleet Provisioning</a></li>
       </ul>
     </div>
   </div>
 
   <div class="docsSection">
-    <div class="docsSectionHeader">
-      <a href="./examples/">
-      <img src="https://s3-us-west-2.amazonaws.com/assets.site.serverless.com/images/sls_aws_examples.png" alt="Serverless Framework AWS Lambda Examples" width="250" draggable="false"/>
-      </a>
+    <div class="docsSectionSubHeader">
+      <h4>Examples</h4>
     </div>
     <div>
-      <div>
+      <div class="docsProviderItems">
         <ul>
           <li><a href="./examples/hello-world">Hello World</a></li>
         </ul>
