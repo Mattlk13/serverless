@@ -35,7 +35,7 @@ describe('AWS - MSK Integration Test', function () {
     });
     const brokerUrls = getBootstrapBrokersResponse.BootstrapBrokerStringTls;
 
-    const serviceData = await fixtures.setup('functionMsk', {
+    const serviceData = await fixtures.setup('function-msk', {
       configExt: {
         functions: {
           producer: {
@@ -54,6 +54,8 @@ describe('AWS - MSK Integration Test', function () {
                 msk: {
                   arn: outputMap.get('MSKCluster'),
                   topic: topicName,
+                  batchSize: 100,
+                  maximumBatchingWindow: 3,
                 },
               },
             ],

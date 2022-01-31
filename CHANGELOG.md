@@ -2,6 +2,443 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.1](https://github.com/serverless/serverless/compare/v3.0.0...v3.0.1) (2022-01-28)
+
+### Bug Fixes
+
+- Report more meaningful strict schema mode error ([#10574](https://github.com/serverless/serverless/pull/10574)) ([e98d699](https://github.com/serverless/serverless/commit/e98d699e7800780e7d56340d778116e1b3b5b005)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:** Minor wording adjustments ([#10575](https://github.com/serverless/serverless/pull/10575)) ([772a9bb](https://github.com/serverless/serverless/commit/772a9bb86c4b9b4e65f5f834c39620359cfc7c7a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Templates
+
+- Update dependencies of `aws-nodejs-typescript` to v3 ([#10582](https://github.com/serverless/serverless/pull/10582)) ([88ac3d0](https://github.com/serverless/serverless/commit/88ac3d0586b3ed98ee0c1b7c618cbca095ee85d3)) ([Paul Lessing](https://github.com/paullessing))
+
+## [3.0.0](https://github.com/serverless/serverless/compare/v2.72.2...v3.0.0) (2022-01-27)
+
+We are excited to announce the release of Serverless Framework v3!
+
+This new major version brings **a cleaner and redesigned CLI experience** as well as a brand new feature: **stage parameters**.
+
+Read all about Serverless Framework v3 **[in the official blog post](https://www.serverless.com/blog/serverless-framework-v3-is-live)**.
+
+<a title="Serverless Framework v3 is live!" href="https://www.serverless.com/blog/serverless-framework-v3-is-live"><img src="https://assets-global.website-files.com/60acbb950c4d66d0ab3e2007/6193d4f3300e602de28a56e8_6193d008f4d92d593c0e6fb1_6193c1d7c81caf0fa82bbe65_terminal-light.gif" width="700"></a>
+
+---
+
+### ⚠ BREAKING CHANGES
+
+Read the [**complete v3 Upgrade Guide**](https://www.serverless.com/framework/docs/guides/upgrading-v3).
+
+- **Variables:** Old variables resolver is permanently removed. Any resolution error as approached with current resolver is assumed as final (there's no longer fallback to old resolver)
+- **AWS Lambda:**
+  - Default lambda hashing algorithm was changed to `20201221`
+  - Runtimes `nodejs10.x`, `python2.7`, `ruby2.5` and `dotnetcore2.1` reached end of support on AWS and are no longer recognized in configuration.
+  - Default runtime has been changed from `nodejs12.x` to `nodejs14.x`
+  - Properties `service.awsKmsKeyArn` and `functions[].awsKmsKeyArn` are no longer supported. Use `provider.kmsKeyArn` and `functions[].kmsKeyArn` instead.
+- **CLI:**
+  - CLI params put before command tokens are no longer recgonized (e.g. `sls -f <function-name> deploy function` will no longer work). In all cases construct CLI args in `sls <command> <options>` order
+  - Unrecognized CLI options will no longer be supported and will result in an error.
+  - `enableLocalInstallationFallback` configuration property is no longer supported.
+  - Remove `studio` command schema
+  - The `--verbose` CLI flag does no longer support `-v` alias
+  - Opt-in tab-tab autocompletion feature is removed due to performance and security issues
+- **AWS API Gateway:**
+  - Enabling logs or tracing for imported API Gateway will now result in an error instead of warning
+  - For authorizers with `request` type and caching disabled (`resultTtlInSeconds: 0`), the `identitySource` will no longer be set to `method.request.header.Authorization` by default.
+  - Support for `usagePlan`, `resourcePolicy` and `apiKeys` on `provider` level is removed. Use `provider.apiGateway` level instead to set them.
+  - Support for `http.request.schema` has been removed and replaced with `http.request.schemas`.
+- **AWS HTTP API:** Tags from `provider.tags` are applied by default to HTTP API Gateway.
+- **AWS CloudFront:** Support for `MinTTL`, `MaxTTL`, `DefaultTTL` and `ForwardedValues` on `cloudfront.behavior` has been removed.
+- **AWS EventBridge:** By default, EventBridge resources now will be deployed using native CloudFormation resources instead of Custom Resources.
+- **AWS Alexa:** Support for simple `alexaSkill` event was removed and now `appId` is required for all `alexaSkill` events.- Serverless Components (`@serverless/components`) CLI is no longer integrated with Framework CLI.
+- **Dashboard:** `tenant` configuration setting is no longer respected. Ensure to rely on `org` instead
+- Serverless Components v1 (`@serverless/cli`) CLI is no longer integrated with Framework CLI.
+- Custom nested configuration paths will no longer be supported and such usage will result in an error.
+- Object notation is no longer supported for `service` property. Set name directly to `service`.
+- When creating `Serverless` class instance programatically, both `options` and `commands` have to be passed via `config` to the constructor.
+- Duplicate plugin definition in configuration will now result in an error instead of a warning.
+- Using `--aws-s3-accelerate` flag will result in an error instead of deprecation when custom S3 bucket is used.
+- Removed support for `provider.disableDefaultOutputExportNames`
+- Node.js versions lower than 12 is no longer supported
+- Lifecycle events marked as deprecated (in context of v1) are no longer evaluated
+
+### Features
+
+- **Variables:** Remove old variables resolver ([#10512](https://github.com/serverless/serverless/issues/10512)) ([9bf6c16](https://github.com/serverless/serverless/commit/9bf6c16cb787ae48092d90bd7613d86a1c8ca075)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:** Deprecate `package.include` and `package.exclude` ([#10348](https://github.com/serverless/serverless/issues/10348)) ([aa4f9e3](https://github.com/serverless/serverless/commit/aa4f9e344e313f1ca64fa7af9475e6b84be8fb56)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:**
+  - Unconditionally fallback when local installation found ([#10503](https://github.com/serverless/serverless/issues/10503)) ([137554c](https://github.com/serverless/serverless/commit/137554c9d35eb14bf3bba654673b99d343c0a7d1)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Simplify `logs` command output ([#10203](https://github.com/serverless/serverless/issues/10203)) ([d4124a3](https://github.com/serverless/serverless/commit/d4124a3ca6d3895289ef605d4dc6e5eb0cd2e3df)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Deprecate support for `deploy -f` alias ([#10346](https://github.com/serverless/serverless/issues/10346)) ([09c9ea3](https://github.com/serverless/serverless/commit/09c9ea3a38afc30c1c15d21c926b8d06dfd81356)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Deprecate missing options schema ([#10394](https://github.com/serverless/serverless/issues/10394)) ([0db9c49](https://github.com/serverless/serverless/commit/0db9c49e2d435499e2b836b948e815b4a8839521)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Deprecate recognition of `projectDir` configuration setting ([#10511](https://github.com/serverless/serverless/issues/10511)) ([00fcd83](https://github.com/serverless/serverless/commit/00fcd83f49703188f3ddb0317afaa88fbece4801)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Global `--debug` flag for debug logging ([#10197](https://github.com/serverless/serverless/issues/10197)) ([3b4f267](https://github.com/serverless/serverless/commit/3b4f2677f8d83fd76a47bfac781bf1b81bfec924)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Global `--verbose` flag for verbose logging ([#10197](https://github.com/serverless/serverless/issues/10197)) ([2eef264](https://github.com/serverless/serverless/commit/2eef264bdca3dc7ae270aa09b974f23546425344)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Register `-v` as global `--version` alias ([#10332](https://github.com/serverless/serverless/issues/10332)) ([211db81](https://github.com/serverless/serverless/commit/211db8149cad519174490fbb5d2f1f42f859aabb)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Remove `-v` alias for `--verbose` flag ([#10153](https://github.com/serverless/serverless/issues/10153)) ([03b77c0](https://github.com/serverless/serverless/commit/03b77c0d2392e74f7d5caf76b9c01675d6d14023)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Remove support for unrecognized cli options ([#10172](https://github.com/serverless/serverless/issues/10172)) ([7c2b2ea](https://github.com/serverless/serverless/commit/7c2b2ea6a84c62fcb5c8830c16437376002b2a10)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Simplify CLI args parsing to `<command> <options>` format ([#10332](https://github.com/serverless/serverless/issues/10332)) ([8229812](https://github.com/serverless/serverless/commit/8229812e2bd1632efd9c8c8999236f6dff79171c)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Support `serverless-tencent` CLI ([#10305](https://github.com/serverless/serverless/issues/10305)) ([10db944](https://github.com/serverless/serverless/commit/10db944c73357014db20062c70ec666898505b0f)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Do not decorate `cli.log` logs ([#10196](https://github.com/serverless/serverless/issues/10196)) ([1f44227](https://github.com/serverless/serverless/commit/1f44227b7feeef30ca2ac151fffe219bde6a8461)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Expose `sls doctor` command ([#10504](https://github.com/serverless/serverless/issues/10504)) ([d403bfc](https://github.com/serverless/serverless/commit/d403bfc94eb13490d6a91d3352ae3b163caa6d68)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Remove `studio` command schema ([#10191](https://github.com/serverless/serverless/issues/10191)) ([7f1e7e1](https://github.com/serverless/serverless/commit/7f1e7e163b65580a2f0d10cad012f69605f32b18)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Remove tab autocomplete feature ([#10414](https://github.com/serverless/serverless/issues/10414)) ([519ce0c](https://github.com/serverless/serverless/commit/519ce0cb77056ba53be92968958f55f8eb7cc779)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Lambda:**
+  - Change default hashing algorithm ([#10255](https://github.com/serverless/serverless/issues/10255)) ([775debf](https://github.com/serverless/serverless/commit/775debf5e2bebc51346853d99d109776f9856cee)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Change default runtime to `nodejs14.x` ([#10147](https://github.com/serverless/serverless/issues/10147)) ([30e99fb](https://github.com/serverless/serverless/commit/30e99fb92f72a968f8e1c9a1ddbbb81a6bdc5288)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Remove support for `awsKmsKeyArn` setting ([#10146](https://github.com/serverless/serverless/issues/10146)) ([6de37bf](https://github.com/serverless/serverless/commit/6de37bf3b7c14ca84a32188b377e92dfbd0af473)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Remove support for obsolete runtimes ([#10207](https://github.com/serverless/serverless/issues/10207)) ([23cfb63](https://github.com/serverless/serverless/commit/23cfb63cdf400ac4601f13571554f4d8fc5ee0cd)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS HTTP API:**
+  - Always apply `provider.tags` to HTTP API ([#10141](https://github.com/serverless/serverless/issues/10141)) ([b34d549](https://github.com/serverless/serverless/commit/b34d5497b6290635037f6d8f3b65451803ef6027)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Deprecate `provider.httpApi.useProviderTags` ([#105](https://github.com/serverless/serverless/issues/105)) ([fee410a](https://github.com/serverless/serverless/commit/fee410a445b088d4fb86074924604208043934c0)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS API Gateway:**
+  - Change default identity source for authorizers ([#10168](https://github.com/serverless/serverless/issues/10168)) ([1139255](https://github.com/serverless/serverless/commit/11392557d2800cdf226bd17bd32407f61a9dba52)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Error on tracing or logs set for external API ([#10198](https://github.com/serverless/serverless/issues/10198)) ([64ea6e5](https://github.com/serverless/serverless/commit/64ea6e59b5bbd1c807a948fd092c5792923e9559)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Remove API specific settings from `provider` ([#10157](https://github.com/serverless/serverless/issues/10157)) ([99941f0](https://github.com/serverless/serverless/commit/99941f0a5723aef0395ea0fb5b059e9ade8321b4)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Remove support for `request.schema` ([#10143](https://github.com/serverless/serverless/issues/10143)) ([b8019d8](https://github.com/serverless/serverless/commit/b8019d82ccabf732a75c2f97c958b84efb1e43ef)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS CloudFront:** Remove support for deprecated `behavior` props ([#10149](https://github.com/serverless/serverless/issues/10149)) ([c22277f](https://github.com/serverless/serverless/commit/c22277f69c327f271ea5cd51c98538c9b4eb7b1b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS EventBridge:** Change default deployment method to native CF ([#10164](https://github.com/serverless/serverless/issues/10164)) ([46956f3](https://github.com/serverless/serverless/commit/46956f3e9f5dde9367669b0d9c1ca2dc454bfc8e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS IAM:** Deprecate IAM settings grouped directly at `provider` ([#10348](https://github.com/serverless/serverless/issues/10348)) ([d7fd239](https://github.com/serverless/serverless/commit/d7fd23997f570c868437a5ea0187797403f8fe0a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Plugins:** Pass log writers to plugin constructor ([#10140](https://github.com/serverless/serverless/issues/10140)) ([57079b7](https://github.com/serverless/serverless/commit/57079b78a671d7756c768f3136518f6a6f46d8ef)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Config Schema:** Deprecate `warn` as a validation mode default ([#10348](https://github.com/serverless/serverless/issues/10348)) ([6e27cc1](https://github.com/serverless/serverless/commit/6e27cc18c6c50fbd3311427e92c9e7f16055ae85)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Standalone:** Upgrade `npm` to v8 ([#10349](https://github.com/serverless/serverless/issues/10349)) ([6bfdc0c](https://github.com/serverless/serverless/commit/6bfdc0cda4b2009e4433f2fda45356c5d297c172)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Dashboard:** Drop support for `tenant` ([#10525](https://github.com/serverless/serverless/issues/10525)) ([9894875](https://github.com/serverless/serverless/commit/98948750e6cb856c62f1b4f4138a5157da07ae7e)) ([Mariusz Nowak](https://github.com/medikoo))
+- **AWS Alexa:** Remove support for alexaSkill without appId ([#10142](https://github.com/serverless/serverless/issues/10142)) ([a9edd06](https://github.com/serverless/serverless/commit/a9edd063039a41fee1679827f7abe0e754036b45)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Disallow custom nested configuration path ([#10205](https://github.com/serverless/serverless/issues/10205)) ([aeb9a57](https://github.com/serverless/serverless/commit/aeb9a57681cc3ff67c6dedbbf051b0c42d8ba6bb)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Error instead of warning when missing `commands` or `options` ([#10158](https://github.com/serverless/serverless/issues/10158)) ([f86f691](https://github.com/serverless/serverless/commit/f86f69131678a3a9be13acaeba0b56b751e6ce57)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Remove `@serverless/cli` CLI integration ([#10462](https://github.com/serverless/serverless/issues/10462)) ([396cfb9](https://github.com/serverless/serverless/commit/396cfb9621a5db211e2853b8105386103f9f097c)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove `@serverless/components` CLI integration ([#10327](https://github.com/serverless/serverless/issues/10327)) ([3395395](https://github.com/serverless/serverless/commit/33953958ae354b240e6d949b889e376dcce09cc8)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove support for `provider.disableDefaultOutputExportNames` ([#10148](https://github.com/serverless/serverless/issues/10148)) ([a9cd331](https://github.com/serverless/serverless/commit/a9cd3317b2e68b1b08c3f7388a2d4d459db1f2d7)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Remove support for Node v10 ([#10186](https://github.com/serverless/serverless/issues/10186)) ([90f00b7](https://github.com/serverless/serverless/commit/90f00b7c02113932034f4e3ee3ef659b1ec0db02)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Remove support for object notation for `service` ([#10156](https://github.com/serverless/serverless/issues/10156)) ([bccd188](https://github.com/serverless/serverless/commit/bccd188a0da7fe335b3e2b573f3ab19ccd0c49f8)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Restrict stage name with pattern ([c8c9f49](https://github.com/serverless/serverless/commit/c8c9f49fd239df723e3841fbfe22abdb90c02dae)) ([Mariusz Nowak](https://github.com/medikoo))
+- Support `params` configuration ([#10400](https://github.com/serverless/serverless/issues/10400)) ([4675b57](https://github.com/serverless/serverless/commit/4675b57117e7d850a6015ab97c81938b9f374bf1)) ([Mariusz Nowak](https://github.com/medikoo))
+- Throw error on duplicated plugin definition ([#10150](https://github.com/serverless/serverless/issues/10150)) ([d3aca0a](https://github.com/serverless/serverless/commit/d3aca0a7955c48b123720a887e6dd7300475fe03)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Throw for `--aws-s3-accelerate` when custom bucket used ([#10151](https://github.com/serverless/serverless/issues/10151)) ([b7d48e5](https://github.com/serverless/serverless/commit/b7d48e59fdbe2a2056c6352d6ac33d4c43099e53)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Use change sets in CF deployments ([#10390](https://github.com/serverless/serverless/issues/10390)) ([e2c65a2](https://github.com/serverless/serverless/commit/e2c65a2230b9bf9fb78c7445b02d3ee4945ee1aa)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI Onboarding:** Download templates from v3 examples branch ([#10482](https://github.com/serverless/serverless/issues/10482)) ([ded1b0e](https://github.com/serverless/serverless/commit/ded1b0e832c420871ffe37fedff0afe990d1d3e6)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:**
+  - Convert `isLocallyInstalled` to export result directly ([#10503](https://github.com/serverless/serverless/issues/10503)) ([ad0bbb0](https://github.com/serverless/serverless/commit/ad0bbb0a9161bc823d1c542e6dbf993f436f6b5a)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Export resolved local installation path directly ([#10503](https://github.com/serverless/serverless/issues/10503)) ([fb3b39a](https://github.com/serverless/serverless/commit/fb3b39a5a9bd35e211600530a30fc5583deec0db)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve post install log to reflect modern style ([#10418](https://github.com/serverless/serverless/issues/10418)) ([843764b](https://github.com/serverless/serverless/commit/843764baf837f195ec8ee911f103c9f3817f9a10)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve progress for CloudFormation updates ([#10458](https://github.com/serverless/serverless/issues/10458)) ([14b1443](https://github.com/serverless/serverless/commit/14b14432730c77ca34d41000e9aaaad0c29ffb35)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Seclude `paramRegExp` ([#10346](https://github.com/serverless/serverless/issues/10346)) ([703e40f](https://github.com/serverless/serverless/commit/703e40f0d217d925560ba2c1d43b403bb61d335b)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Seclude uncaught exception handling ([#10542](https://github.com/serverless/serverless/issues/10542)) ([b4bd0d4](https://github.com/serverless/serverless/commit/b4bd0d437074a29a972ecdbdc3a026554657817e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Unify finalization of a process handling ([#10542](https://github.com/serverless/serverless/issues/10542)) ([29357f4](https://github.com/serverless/serverless/commit/29357f4e182f102504e5ea841fb95915ccfe6821)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Move `isLocalyInstalled` util to CLI context ([#105](https://github.com/serverless/serverless/issues/105)) ([3dc8395](https://github.com/serverless/serverless/commit/3dc8395d88dfebf4742625ec054955c40a4e2499)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Config Schema:**
+  - Upgrade `ajv` to `v8` along with related packages ([#10440](https://github.com/serverless/serverless/issues/10440)) ([15cd724](https://github.com/serverless/serverless/commit/15cd724f723b55ca73cd0bb00d41d67307ffbed8)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Do not rely on `ajv-keywords` ([#10490](https://github.com/serverless/serverless/issues/10490)) ([#10490](https://github.com/serverless/serverless/issues/10490)) ([4a22a4e](https://github.com/serverless/serverless/commit/4a22a4e58cd8c10d6da34a094a0768b5caafbdb9)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Telemetry:** Include `paramsCount` in telemetry ([#10460](https://github.com/serverless/serverless/issues/10460)) ([dd721b0](https://github.com/serverless/serverless/commit/dd721b0a2038e4b7256593397b5db19833cef387)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Rely on `require.resolve` to detect wether module exist ([#10503](https://github.com/serverless/serverless/issues/10503)) ([040be5f](https://github.com/serverless/serverless/commit/040be5fe7321e051bb6e5e1aa78458c17d2582bc)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove `legacy` logs ([#10527](https://github.com/serverless/serverless/issues/10527)) ([a92ab91](https://github.com/serverless/serverless/commit/a92ab917128629e4e516d69976fdac1014cb5ebb)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Remove `lib/classes/Error.js` ([#10563](https://github.com/serverless/serverless/issues/10563)) ([44391fa](https://github.com/serverless/serverless/commit/44391fac513c7941447d03bdeae95043590cc52c)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove evaluation of deprecated lifecycle events ([#10345](https://github.com/serverless/serverless/issues/10345)) ([34bb51e](https://github.com/serverless/serverless/commit/34bb51e71d542e31a13cfb0f56443d57b6e0f89a)) ([Mariusz Nowak](https://github.com/medikoo))
+- Remove internal `suppressLogIfPrintCommand` method ([#10526](https://github.com/serverless/serverless/issues/10526)) ([584286e](https://github.com/serverless/serverless/commit/584286ec7aba94ac96eb747361f79fafb7c0f32b)) ([Mariusz Nowak](https://github.com/medikoo))
+- Unify file naming convention ([#10563](https://github.com/serverless/serverless/issues/10563)) ([Mariusz Nowak](https://github.com/medikoo))
+- Replace `ncjsm/resolve` usage with native `createRequire` ([#10503](https://github.com/serverless/serverless/issues/10503)) ([d18efc2](https://github.com/serverless/serverless/commit/d18efc2d43789dc11857d677851ba4b66e09a6a4)) ([Mariusz Nowak](https://github.com/medikoo))
+- Adapt to rename in `@serverless/dashboard-plugin` ([#10543](https://github.com/serverless/serverless/issues/10543)) ([88234a5](https://github.com/serverless/serverless/commit/88234a51233e74b3155427a5bf0a4022ec182c04)) ([Mariusz Nowak](https://github.com/medikoo))
+- Upgrade `@serverless/utils` to v6 ([74d9c70](https://github.com/serverless/serverless/commit/74d9c70f8abbfab1af4c6440ed93fd163145a597)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### [2.72.2](https://github.com/serverless/serverless/compare/v2.72.1...v2.72.2) (2022-01-24)
+
+### Bug Fixes
+
+- **Variables:** Fix too eager nested resolution tracking ([#10554](https://github.com/serverless/serverless/issues/10554)) ([8db03c9](https://github.com/serverless/serverless/commit/8db03c90ffba68ebda800d2a009452cd09f7bf7f)) ([Steven Noorbergen](https://github.com/steven-xaroth))
+
+### [2.72.1](https://github.com/serverless/serverless/compare/v2.72.0...v2.72.1) (2022-01-21)
+
+### Maintenance Improvements
+
+- Refactor direct use of `@serverless/utils/log` ([#10534](https://github.com/serverless/serverless/pull/10534)) ([05fb97f](https://github.com/serverless/serverless/commit/05fb97fdab0c0ddc471ca554e48e09e661f797db)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+## [2.72.0](https://github.com/serverless/serverless/compare/v2.71.0...v2.72.0) (2022-01-17)
+
+### Features
+
+- **CLI Onboarding:** Auto login if `org` provided or configured ([#10510](https://github.com/serverless/serverless/pull/10510)) ([dcf5273](https://github.com/serverless/serverless/commit/dcf52731ea3920ecf16b2484e2673080acbfe1cd)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **CLI:** Respect old Node.js versions in version detection ([#10499](https://github.com/serverless/serverless/pull/10499)) ([427920e](https://github.com/serverless/serverless/commit/427920ee0fc1c98109c0b673c794baac1cc5caf7)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **AWS Deploy:** Improve custom resource generation log ([#10496](https://github.com/serverless/serverless/pull/10496)) ([521861b](https://github.com/serverless/serverless/commit/521861b6510fd345c2b596e4ec9e9ef7be01ac10)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI Onboarding:** Improve user message when `app` does not exist ([#10509](https://github.com/serverless/serverless/pull/10509)) ([20afe33](https://github.com/serverless/serverless/commit/20afe339231112e4d5ade9498386ac3c00e37e04)) ([Mariusz Nowak](https://github.com/medikoo))
+- Ensure support for `warn` mode for modern deprecations ([#10502](https://github.com/serverless/serverless/pull/10502)) ([82303b3](https://github.com/serverless/serverless/commit/82303b38942b35fa6cb8ad3f19f2d528a1736587)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Support `conceal` option in modern logs ([#10501](https://github.com/serverless/serverless/pull/10501)) ([0dacf1b](https://github.com/serverless/serverless/commit/0dacf1bb3bd53da32a24cf2286cf081aecf22806)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Templates
+
+- Ensure `esbuild` dependency in `aws-nodejs-typescript` ([#10484](https://github.com/serverless/serverless/pull/10484)) ([452e4d8](https://github.com/serverless/serverless/commit/452e4d8279802ab2ce1ca300ab2c75ec8588a9e8)) ([François Farge](https://github.com/fargito))
+
+## [2.71.0](https://github.com/serverless/serverless/compare/v2.70.0...v2.71.0) (2022-01-10)
+
+### Features
+
+- **AWS Cognito:** Support `forceDeploy` setting ([#10435](https://github.com/serverless/serverless/issues/10435)) ([c67a3f1](https://github.com/serverless/serverless/commit/c67a3f1a4fe6c64f2b6c68ef1b184b2642ad2266)) ([TsimpDim](https://github.com/TsimpDim))
+- **Variables:** Resign from `projectDir` concept ([#10478](https://github.com/serverless/serverless/pull/10478)) ([5a76437](https://github.com/serverless/serverless/commit/5a764373c49d5fb313f50218ab8166f1638c2c32)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Bug Fixes
+
+- **CLI:** Fix handling of provider URL handling ([#10461](https://github.com/serverless/serverless/pull/10461)) ([7ebe133](https://github.com/serverless/serverless/commit/7ebe133b35fa9affafd73b61ee4626d8ce5aee1f)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Config Schema:** Address invalid schema definitions ([#10452](https://github.com/serverless/serverless/pull/10452)) ([9e1fe0a](https://github.com/serverless/serverless/commit/9e1fe0ad5da8b936ccb238041fb2b452e6309faf)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI Onboarding:** Download templates from v2 examples branch ([#10447](https://github.com/serverless/serverless/pull/10447)) ([46d090a](https://github.com/serverless/serverless/commit/46d090a302b9f7f4a3cf479695489b7ffc46b75b)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Ensure telemetry logs are issued at debug level ([#10424](https://github.com/serverless/serverless/pull/10424)) ([7b36038](https://github.com/serverless/serverless/commit/7b360386eadb9a83af73514ced34bc901af43457)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Upgrade `log4j` to `2.17.1` in corresponding templates ([#10430](https://github.com/serverless/serverless/issues/10430)) ([2c3ab1d](https://github.com/serverless/serverless/commit/2c3ab1db9aa7c22c315957d1e474568e62e07e37)) ([Graham Campbell](https://github.com/GrahamCampbell))
+
+## [2.70.0](https://github.com/serverless/serverless/compare/v2.69.1...v2.70.0) (2021-12-27)
+
+### Features
+
+- **AWS API Gateway:** Allow use of custom authorizer with authorizerId ([#10384](https://github.com/serverless/serverless/pull/10384)) ([c0eda27](https://github.com/serverless/serverless/commit/c0eda272901fd91947c6f37589b33f65c804dc9b)) ([Adam Lanners](https://github.com/darksun))
+- **AWS Local Invocation:** Upgrade `log4j` to version 2.17.0 ([#10396](https://github.com/serverless/serverless/issues/10396)) ([2782ed4](https://github.com/serverless/serverless/commit/2782ed4221caa410708cbabbbd09d45a6363be29)) ([Vassili Gorshkov](https://github.com/atlasgurus))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Meaningfully reject missing `restApiRootResourceId` ([#10371](https://github.com/serverless/serverless/issues/10371)) ([2c0a962](https://github.com/serverless/serverless/commit/2c0a962c4fc0ad82ecbc6a266d56bfaa81ad8054)) ([Sudipto Das](https://github.com/sdas13))
+- **AWS Deploy:** Fix reliability of VPC config change detection in `deploy function` ([#10409](https://github.com/serverless/serverless/issues/10409)) ([0190d0d](https://github.com/serverless/serverless/commit/0190d0df05f4e37c8e965913ef1ceaf6b8a9b525)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Templates
+
+- Upgrade `log4j` in `aws-lambda-java-log4j2` ([#10383](https://github.com/serverless/serverless/issues/10383)) ([786f5e4](https://github.com/serverless/serverless/commit/786f5e45d54ae9925649367b0a0e8660eda542e6)) ([Marina](https://github.com/MarinaMeza))
+- Upgrade `log4j` in `aws-kotlin-jvm-gradle` ([#10382](https://github.com/serverless/serverless/issues/10382)) ([7bf8f1b](https://github.com/serverless/serverless/commit/7bf8f1b723cc4f6624df7be3d27f246b3a826140)) ([Varun](https://github.com/varun73))
+- Upgrade `log4j` dependencies ([#10392](https://github.com/serverless/serverless/issues/10392)) ([86fa604](https://github.com/serverless/serverless/commit/86fa60445c83cf35f3411ae49c2a1c4fc7fd82f0)) ([Juan Bermúdez](https://github.com/JuanBermudezN))
+
+### Maintenance Improvements
+
+- **Telemetry:**
+  - Report `didCreateService` property ([#10406](https://github.com/serverless/serverless/pull/10406)) ([4fa20a5](https://github.com/serverless/serverless/commit/4fa20a56eafcab9d8675baa2f0fe6a9c6ee5e184)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Report `projectId` in remove command ([#10415](https://github.com/serverless/serverless/pull/10415)) ([0de3bc3](https://github.com/serverless/serverless/commit/0de3bc3cb9c1685226ea0c610e030f9279e79e4e)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Ensure to report `projectId` for interactive ([#10406](https://github.com/serverless/serverless/pull/10406)) ([08b5acb](https://github.com/serverless/serverless/commit/08b5acbaa901c7ce529064c394151e05bdd43aef)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **CLI:** Replace internal old logging utils with modern interface ([#10417](https://github.com/serverless/serverless/pull/10417)) ([5a451ad](https://github.com/serverless/serverless/commit/5a451ad0249b6924cd4105e5c372028402517ecd)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Variables:** Support custom sources in internal resolver ([#10393](https://github.com/serverless/serverless/pull/10393)) ([365a7f1](https://github.com/serverless/serverless/commit/365a7f13afaf40e9e2d573b0668159d6dea7aa02)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [2.69.1](https://github.com/serverless/serverless/compare/v2.69.0...v2.69.1) (2021-12-15)
+
+### Bug Fixes
+
+- **AWS Lambda:** Fix event config setup for provisioned lambdas ([#10366](https://github.com/serverless/serverless/pull/10366)) ([3b4e453](https://github.com/serverless/serverless/commit/3b4e4539d8b56de6a7cccb2e9c8455f34a5289f6)) ([Mariusz Nowak](https://github.com/medikoo))
+- **CLI:**
+  - Do not crash on help request ([#10347](https://github.com/serverless/serverless/pull/10347)) ([f6feb0b](https://github.com/serverless/serverless/commit/f6feb0b7b3b5ceb727119056e44e756a8105ec5b)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve error handler resolution ([#10367](https://github.com/serverless/serverless/pull/10)) ([0dedd3e](https://github.com/serverless/serverless/commit/0dedd3e8790f568527b8a2444720fe47048ba719)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Upgrade `log4j` in Java based templates ([#10363](https://github.com/serverless/serverless/issues/10363)) ([7de020b](https://github.com/serverless/serverless/commit/7de020bbadad0aed47859f2129c9e58409b9ac65)) ([Vassili Gorshkov](https://github.com/atlasgurus))
+- Upgrade `log4j` in Java based templates ([#10339](https://github.com/serverless/serverless/issues/10339)) ([c1df4f8](https://github.com/serverless/serverless/commit/c1df4f860a585ff62c364ac8fd6d8b64b323b156)) ([Vassili Gorshkov](https://github.com/atlasgurus))
+
+## [2.69.0](https://github.com/serverless/serverless/compare/v2.68.0...v2.69.0) (2021-12-13)
+
+### Features
+
+- **AWS Deploy:** Ensure existence of S3 deployment bucket (if possible) ([#10317](https://github.com/serverless/serverless/pull/10317)) ([f358585](https://github.com/serverless/serverless/commit/f35858599ad749b5417c238f510e726615e221dc)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Kafka:** Add support for `mTLS` access configuration ([#10273](https://github.com/serverless/serverless/issues/10273)) ([9faf37a](https://github.com/serverless/serverless/commit/9faf37aa153a60784ca783b1e2b7364625e8761f)) ([Misha Bruml](https://github.com/mishabruml))
+- **Standalone:**
+  - Support installation on M1-based Macs ([#10291](https://github.com/serverless/serverless/pull/10291)) ([92ae054](https://github.com/serverless/serverless/commit/92ae054f02dc631c178628492af7049ce2936204)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Use Node 16 as base for binaries ([#10291](https://github.com/serverless/serverless/pull/10291)) ([eb8f474](https://github.com/serverless/serverless/commit/eb8f474940c4cd69f08ec062adfaa15d62d81ee2)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS Deploy:**
+  - Allow removal of stack with bucket missing ([#10306](https://github.com/serverless/serverless/pull/10306)) ([1a85a4a](https://github.com/serverless/serverless/commit/1a85a4a901caf4ca05096bf11bfcad31959c8044)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Ensure to strip all `null` properties from CloudFormation template ([#10304](https://github.com/serverless/serverless/issues/10304)) ([1f58760](https://github.com/serverless/serverless/commit/1f58760f467f2dcb960e23c2eb028f4abef23209)) ([GurmeharS](https://github.com/GurmeharS))
+  - Recognize all boolean values at `provider.disableRollback` ([#10324](https://github.com/serverless/serverless/pull/10324)) ([2485c7e](https://github.com/serverless/serverless/commit/2485c7efcc4f6f5b1d65b56d4d0d71297d113fa5)) ([François Farge](https://github.com/fargito))
+- **Variables:** Provide opt-out from forced decryption at`ssm` source ([#10315](https://github.com/serverless/serverless/issues/10315)) ([503c031](https://github.com/serverless/serverless/commit/503c0319b7e9acc2b674d5d61874dfa3fcfc857e)) ([Omer Shacham](https://github.com/omerinvia))
+
+### Maintenance Improvements
+
+- Configure promise returning functions as async ([#10309](https://github.com/serverless/serverless/issues/10309)) ([4d4f863](https://github.com/serverless/serverless/commit/4d4f8637d830ba9a72806fc127fe3497f7c0f23c)) ([mdanyalkhan](https://github.com/mdanyalkhan))
+- Use `async/await` syntax in `bucket.js` ([#10306](https://github.com/serverless/serverless/pull/10306)) ([39e43b5](https://github.com/serverless/serverless/commit/39e43b51e5e13c708900e0ccc4d4f25ccf0df61c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+## [2.68.0](https://github.com/serverless/serverless/compare/v2.67.0...v2.68.0) (2021-12-02)
+
+### Features
+
+- **AWS Deploy:**
+  - Ensure consistent function state in `deploy function` ([#10288](https://github.com/serverless/serverless/pull/10288)) ([d52526b](https://github.com/serverless/serverless/commit/d52526bb6059ce20eba341c29ad5a2373c238624)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Support all regions from `iso` and `isob` partition ([25eb571](https://github.com/serverless/serverless/commit/25eb571dd3299ac0f61dd1ea40b6b44b355f6898)) ([#10299](https://github.com/serverless/serverless/issues/10299)) ([maafk](https://github.com/maafk))
+- **AWS SQS:** Support `filterPatterns` ([#10297](https://github.com/serverless/serverless/pull/10297)) ([3f0a80a](https://github.com/serverless/serverless/commit/3f0a80acd3fcf9eb7768625eb6cfe06cf572afa0)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Stream:** Support `filterPatterns` ([#10285](https://github.com/serverless/serverless/issues/10285)) ([fc00505](https://github.com/serverless/serverless/commit/fc0050559cd1ee7b8a53a08fae73940177da93cb)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
+### Bug Fixes
+
+- **AWS SQS:** Accept only plain string form in direct ARN assignement ([#10263](https://github.com/serverless/serverless/issues/10263)) ([f7bbd17](https://github.com/serverless/serverless/commit/f7bbd176866b99725dcf1fef1128b0d2194217e0)) ([Sudipto Das](https://github.com/sdas13))
+- **Variables:** Resolve variables in resolved address & params values ([#10296](https://github.com/serverless/serverless/pull/10296)) ([63d54e1](https://github.com/serverless/serverless/commit/63d54e1537e10ae63c171892edd886f6b81e83f6)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **Variables:** Seclude internal logic for reuse ([#10296](https://github.com/serverless/serverless/pull/10296)) ([9c75044](https://github.com/serverless/serverless/commit/9c75044fd59d8f181c7daee22d53a7bac3786e09)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Update dependencies in `aws-java-maven` ([#10289](https://github.com/serverless/serverless/issues/10289)) ([0714f7d](https://github.com/serverless/serverless/commit/0714f7df0642d7a900c9d72eb26ae8c5ae1eddd7)) ([burakaktasfe](https://github.com/burakaktasfe))
+
+## [2.67.0](https://github.com/serverless/serverless/compare/v2.66.2...v2.67.0) (2021-11-26)
+
+### Features
+
+- **AWS Deploy:** Support `disableRollback` parameter ([#10236](https://github.com/serverless/serverless/issues/10236)) ([c9fefce](https://github.com/serverless/serverless/commit/c9fefced103e47d5d793d979cbb10072daeabf01)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- **AWS Lambda:** Add `platform` option for container images ([#10237](https://github.com/serverless/serverless/issues/10237)) ([5b61b41](https://github.com/serverless/serverless/commit/5b61b415a0f19ce0755924eae969caf02185d8af)) ([Zane Mountcastle](https://github.com/zanemountcastle))
+- **AWS S3:** Support `Fn::If` CF function for s3 event ([#10272](https://github.com/serverless/serverless/pull/10272)) ([a4fa498](https://github.com/serverless/serverless/commit/a4fa49844d23afea90f7c9aa4616beedd2a80db8)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS SQS:** Support `functionResponseType` ([#10265](https://github.com/serverless/serverless/issues/10265)) ([44511f3](https://github.com/serverless/serverless/commit/44511f343b1a68ca147e8ba9e8b493143b89c324)) ([nicoeft](https://github.com/nicoeft))
+
+## [2.66.2](https://github.com/serverless/serverless/compare/v2.66.1...v2.67.0) (2021-11-17)
+
+### Bug Fixes
+
+- **CLI:** Fix component template recognition in triage ([#10252](https://github.com/serverless/serverless/issues/10252)) ([4494f77](https://github.com/serverless/serverless/commit/4494f77f6111249d97295923a706883a8910840d)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:** Expose dashboard provider name when starting deployment ([#10194](https://github.com/serverless/serverless/issues/10194)) ([6698fa6](https://github.com/serverless/serverless/commit/6698fa657e5a5b35908c2b2de0815525f948064f)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Use `iam.role` syntax ([#10227](https://github.com/serverless/serverless/issues/10227)) ([a55d51c](https://github.com/serverless/serverless/commit/a55d51c6a4aa38153f61192d374cb23bf09ff66c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Update `ts-node` for es2020 and es2021 support in `aws-nodes-typescript` ([#10234](https://github.com/serverless/serverless/issues/10234)) ([e131609](https://github.com/serverless/serverless/commit/e13160902848912a6bb652299d1bc6107cf09eb1)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
+### [2.66.1](https://github.com/serverless/serverless/compare/v2.66.0...v2.66.1) (2021-11-10)
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure proper `apiId` resolution ([#10221](https://github.com/serverless/serverless/pull/10221)) ([95f3a56](https://github.com/serverless/serverless/commit/95f3a5603897ad43ba6e008a7ea2a35d21a4eacf)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Maintenance Improvements
+
+- **CLI:** Improve timestamp visiblity in `deploy list` output ([#10211](https://github.com/serverless/serverless/pull/10211)) ([55146c4](https://github.com/serverless/serverless/commit/55146c4595024b0e3702dc2023264af784b906e9)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Upgrade `middy` in `aws-nodejs-typescript` ([#10215](https://github.com/serverless/serverless/issues/10215)) ([ad95e03](https://github.com/serverless/serverless/commit/ad95e030b3581a65babc8dd175b8bb69f1215534)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+- Use non deprecated API in `aws-nodejs-typescript` ([#10214](https://github.com/serverless/serverless/issues/10214)) ([6671d98](https://github.com/serverless/serverless/commit/6671d98615ab7d003c3c7413c9334b63b2d735e8)) ([Frédéric Barthelet](https://github.com/fredericbarthelet))
+
+## [2.66.0](https://github.com/serverless/serverless/compare/v2.65.0...v2.66.0) (2021-11-09)
+
+### Features
+
+- Introduce `enforce-hash-update` flag to help Lambda hashing version migration ([#10209](https://github.com/serverless/serverless/pull/10209)) ([afd0a5b](https://github.com/serverless/serverless/commit/afd0a5bd6f131c9b12148199d4995e055e5963f0)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **Variables:** Recognize `:` in variable address to support `output` source ([#10208](https://github.com/serverless/serverless/pull/10208)) ([723927f](https://github.com/serverless/serverless/commit/723927f2dcdcc425025da03ac0be5edd3c203dc7)) ([Piotr Grzesik](https://github.com/pgrzesik))
+
+### Bug Fixes
+
+- **AWS API Gateway:** Ensure `shouldStartNameWithService` support ([#10177](https://github.com/serverless/serverless/pull/10177)) ([e8c8d25](https://github.com/serverless/serverless/commit/e8c8d259fb79ae04e33e01af162c6666f0060189)) ([Vicary A.](https://github.com/vicary))
+- **CLI:** Do not recommend `frameworkVersion` when running pre release ([#10204](https://github.com/serverless/serverless/pull/10204)) ([53490a5](https://github.com/serverless/serverless/commit/53490a55183db5f304d0e3ef69feadd9a20fa815)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- Ensure to use `legacy.log` instead of `cli.log` ([#10206](https://github.com/serverless/serverless/pull/10206)) ([ea05d7c](https://github.com/serverless/serverless/commit/ea05d7c41e84b0f68017804b06d6435062673d26)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [2.65.0](https://github.com/serverless/serverless/compare/v2.64.1...v2.65.0) (2021-11-03)
+
+### Features
+
+- **AWS Lambda:**
+  - Support CF intrinsic functions at `functions[].reservedConcurrency` ([#10129](https://github.com/serverless/serverless/issues/10129)) ([7cfddff](https://github.com/serverless/serverless/commit/7cfddff31433582ac031be0a168eba2d356d7ee9)) ([ROSeaboyer](https://github.com/ROSeaboyer))
+  - Allow to stick to current default Lambda hashing version mode with `lambdaHashingVersion: 20200924` setting ([#10173](https://github.com/serverless/serverless/pull/10173)) ([50a8457](https://github.com/serverless/serverless/commit/50a845709eb846ce5ca3b60116c4ec278896a8b3)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS EventBridge:** Adjust deprecation of deployment method and allow to keep using old approach ([#10133](https://github.com/serverless/serverless/pull/10133)) ([bf62b7c](https://github.com/serverless/serverless/commit/bf62b7c4dabbecc892fde4d0d988dc2dd2cb7461)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Local Invocation:** Support decimal serialization for Python ([#10178](https://github.com/serverless/serverless/pull/10178)) ([9ef46ba](https://github.com/serverless/serverless/commit/9ef46ba05ff033dbf04c451a214bf4ced23c90e8)) ([Shane R. Spencer](https://github.com/whardier))
+
+### Bug Fixes
+
+- **AWS Deploy:** Fix handling of deployment bucket extensions ([#10137](https://github.com/serverless/serverless/issues/10137)) ([39bdea0](https://github.com/serverless/serverless/commit/39bdea07500b8fb814a5cce83ec6f78a0c75006c)) ([Mars Lan](https://github.com/mars-lan))
+- **AWS HTTP API:** Recognize max timeout as 30s instead of 29s ([#10119](https://github.com/serverless/serverless/issues/10119)) ([e3e02fe](https://github.com/serverless/serverless/commit/e3e02fe8e2f1bbd236cfa49f80a360fd828c1ead)) ([Caio Fauza](https://github.com/CaioFauza))
+- **CLI:**
+  - Fix `help` command usage information ([#10175](https://github.com/serverless/serverless/issues/10175)) ([254e70c](https://github.com/serverless/serverless/commit/254e70cd0ad9bb1803d3a5741b966f5807e9d869)) ([Sebastian Bille](https://github.com/TastefulElk))
+  - Fix resolution of help for not integrated commands ([#10128](https://github.com/serverless/serverless/pull/10128)) ([204f205](https://github.com/serverless/serverless/commit/204f2051f6a5ca5f046eb905292dfae0c597e33f)) ([Mariusz Nowak](https://github.com/medikoo))
+- Recognize accessible configuration parts on validation errors ([#10134](https://github.com/serverless/serverless/pull/10134)) ([b7a6349](https://github.com/serverless/serverless/commit/b7a634974dc2ee138d85ec58609bf2559c5de9f6)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Performance Improvements
+
+- **CLI:** Integrate CLI triage into this package (no `@serverless/components` and `@serverless/cli` modules are loaded unless their CLI is used)([#10131](https://github.com/serverless/serverless/pull/10131)) ([415bdef](https://github.com/serverless/serverless/commit/415bdefca092e60cacd867006bacddfda231ed94)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:**
+  - Improve file size output in logs ([#10169](https://github.com/serverless/serverless/pull/10169)) ([4448490](https://github.com/serverless/serverless/commit/44484903b38eaa18c3e3838b8a3f217922a233e5)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Improve main progress message ([#10183](https://github.com/serverless/serverless/pull/10183)) ([533f709](https://github.com/serverless/serverless/commit/533f709c5833619d5ce86ec987133ff0f148c8e0)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Telemetry:** Add `projectId` to payload ([#10180](https://github.com/serverless/serverless/pull/10180)) ([cc7d7e4](https://github.com/serverless/serverless/commit/cc7d7e4d531090e81bf08842433397588d00afce)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS EventBridge:** Address typos in error messages ([#10165](https://github.com/serverless/serverless/issues/10165)) ([ee38f6a](https://github.com/serverless/serverless/commit/ee38f6a3081a3a0f22ee9fea8975f13520ac18ec)) ([Andreas Kohn](https://github.com/ankon))
+- Seprate internal and plugin output sections ([#10184](https://github.com/serverless/serverless/pull/10184)) ([7bb2520](https://github.com/serverless/serverless/commit/7bb2520f491d008075eb08be64bdb2e0b60ec5c6)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Templates
+
+- Package lambdas individually in `aws-nodejs-typescript` ([#10106](https://github.com/serverless/serverless/pull/10106)) ([3aab5f8](https://github.com/serverless/serverless/commit/3aab5f86985598d6bb3135f4ab934092ad467df5)) ([Adrien Cacciaguerra](https://github.com/adriencaccia))
+- Upgrade `azure-nodejs-typescript` ([#10163](https://github.com/serverless/serverless/issues/10163)) ([26846d5](https://github.com/serverless/serverless/commit/26846d5879d655ffe299db694a33f1f6d187a941)) ([Giang Nguyen](https://github.com/giangnm))
+
+### [2.64.1](https://github.com/serverless/serverless/compare/v2.64.0...v2.64.1) (2021-10-20)
+
+### Bug Fixes
+
+- **CLI:** Handle gently case where temp folder is on other device ([#10124](https://github.com/serverless/serverless/issues/10124)) ([a030636](https://github.com/serverless/serverless/commit/a0306365fc2c18c04698640723db2f4efeb34e2f)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [2.64.0](https://github.com/serverless/serverless/compare/v2.63.0...v2.64.0) (2021-10-20)
+
+### Features
+
+- **AWS RabbitMQ:** Support for Amazon MQ RabbitMQ events ([#9919](https://github.com/serverless/serverless/issues/9919)) ([a3edecf](https://github.com/serverless/serverless/commit/a3edecf0c6b4e066bde2de8095582432d9fdd635)) ([Michael](https://github.com/liegeandlief))
+
+### Bug Fixes
+
+- **AWS Deploy:** Recognize `LogicalResourceId` in `stackPolicy` ([#10097](https://github.com/serverless/serverless/pull/10097)) ([1a528c2](https://github.com/serverless/serverless/commit/1a528c2cc0746bfe6a692183f96b0831e3dd92f4)) ([Monsma](https://github.com/jmonsma))
+- **AWS EventBridge:** Allow intrinsic functions in `pattern` ([#10120](https://github.com/serverless/serverless/issues/10120)) ([1c105a4](https://github.com/serverless/serverless/commit/1c105a4c16e8bdca9fc66c5eddf12153ebc9a1fb)) ([Benoît Bouré](https://github.com/bboure))
+- **CLI:** Ensure command validation for service independent commands ([#10115](https://github.com/serverless/serverless/pull/10115)) ([6022fb9](https://github.com/serverless/serverless/commit/6022fb98331e8f7d8893a28d3dcb20d91d0a1e20)) ([Mariusz Nowak](https://github.com/medikoo))
+- **Packaging:** Ensure to show deprecation in all cases ([#10111](https://github.com/serverless/serverless/pull/10111)) ([cc71fc9](https://github.com/serverless/serverless/commit/cc71fc99ffe2e1f2fcc764b29dafa197c665cef1)) ([Mariusz Nowak](https://github.com/medikoo))
+
+### Maintenance Improvements
+
+- **CLI:**
+  - Support `decoratedMessage` on `ServerlessError` ([#10112](https://github.com/serverless/serverless/pull/10112)) ([2217158](https://github.com/serverless/serverless/commit/2217158764dde8ceee472292b531836ada20d79a)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Enhanced modern error reporting for CloudFormation ([#10112](https://github.com/serverless/serverless/pull/10112)) ([cfd828e](https://github.com/serverless/serverless/commit/cfd828ece872b572cbb46670437e8196f2200903)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Report `credentials` source in modern error output ([#10114](https://github.com/serverless/serverless/pull/10114)) ([b4ff87d](https://github.com/serverless/serverless/commit/b4ff87dc81286b8123830f20bccfb3aa320e4ccd)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Improve style for local fallback modern notice ([#10111](https://github.com/serverless/serverless/pull/10111)) ([73c071b](https://github.com/serverless/serverless/commit/73c071b060216d330974a2f98917eba315eb634b)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Introduce `doctor` command for modern handling of deprecations ([#10115](https://github.com/serverless/serverless/pull/10115)) ([452e234](https://github.com/serverless/serverless/commit/452e234306a3703e95ad349305e1e211c165bf22)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Do not filter commands by `lifecycleEvents` for help ([#10115](https://github.com/serverless/serverless/pull/10115)) ([6991d66](https://github.com/serverless/serverless/commit/6991d66987d6276665bff07259bf1ca464ffeab7)) ([Mariusz Nowak](https://github.com/medikoo))
+
+## [2.63.0](https://github.com/serverless/serverless/compare/v2.62.0...v2.63.0) (2021-10-15)
+
+### Features
+
+- **AWS Deploy:** Introduce warning about `deploy -f` alias ([#10078](https://github.com/serverless/serverless/pull/10078)) ([40f574f](https://github.com/serverless/serverless/commit/40f574f946e2f40cba13e18b22ee82c7aaa31d3f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- **AWS Lambda:** Allow overriding provider VPC with no VPC on function level ([#10060](https://github.com/serverless/serverless/pull/10060)) ([44a81fc](https://github.com/serverless/serverless/commit/44a81fcc6a229ac6ff59b8c8e51742a9470eef15)) ([Oliver](https://github.com/HowManyOliversAreThere))
+- **AWS S3:** Recognize `ExpirationInDays` property for `s3` events ([#10083](https://github.com/serverless/serverless/pull/10083)) ([8e6dcd1](https://github.com/serverless/serverless/commit/8e6dcd1aaed50007b5b99e18f61dfa849b898cd9)) ([ROSeaboyer](https://github.com/ROSeaboyer))
+- **CLI:**
+  - Introduce deprecation for duplicate plugin definition ([#10080](https://github.com/serverless/serverless/pull/10080)) ([d2a75ea](https://github.com/serverless/serverless/commit/d2a75ea95e814cd5aaba5eca4c5acebd2aad0bb8)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Introduce deprecation instead of warning on S3 Accelerate for user provided bucket ([#10080](https://github.com/serverless/serverless/pull/10080)) ([04b921a](https://github.com/serverless/serverless/commit/04b921acdc5fd486ffd10fe81fcb2243f37329db)) ([Piotr Grzesik](https://github.com/pgrzesik))
+- Opt-in support for deployment bucket versioning ([#9912](https://github.com/serverless/serverless/issues/9912)) ([c4cb0f3](https://github.com/serverless/serverless/commit/c4cb0f30f5f565e2fd34877dfc383f6b81d135fd)) ([Mars Lan](https://github.com/mars-lan))
+
+### Maintenance Improvements
+
+- **CLI: New logs (experimental):**
+  - Adapt `logInfo` to modern logs ([#10078](https://github.com/serverless/serverless/pull/10078)) ([771f99b](https://github.com/serverless/serverless/commit/771f99b18d76060f030d36b5fa619dd41a7000c8)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Adapt `logWarning` to modern logs ([#10078](https://github.com/serverless/serverless/pull/10078)) ([d43298d](https://github.com/serverless/serverless/commit/d43298d25bc9fcf5f5724a800b2693321e88e838)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Cover image building with modern logs ([#10070](https://github.com/serverless/serverless/pull/10070)) ([a2be338](https://github.com/serverless/serverless/commit/a2be3387b16fdb7324e1342a5f6ee3974e4e34f5)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Improve handling of service outputs in modern logs ([#10100](https://github.com/serverless/serverless/pull/10100)) ([7d19ca8](https://github.com/serverless/serverless/commit/7d19ca857230a56bbe40bda4d6704edd34019e4e)) ([Mariusz Nowak](https://github.com/medikoo))
+  - Introduce modern warning about resource limit ([#10086](https://github.com/serverless/serverless/pull/10086)) ([ca705b8](https://github.com/serverless/serverless/commit/ca705b8cc2854c302158a56294c2507ba5f2038f)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Minor modern logs updates ([#10071](https://github.com/serverless/serverless/pull/10071)) ([39c09e4](https://github.com/serverless/serverless/commit/39c09e44b6380ec1a13aa50aca9082cffb0aeca1)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Remove empty line in `info` command ([#10086](https://github.com/serverless/serverless/pull/10086)) ([03b4b3d](https://github.com/serverless/serverless/commit/03b4b3d47c25b6f98a46699463288c94b051f42c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Replace `process.stdout` use with modern logs ([#10087](https://github.com/serverless/serverless/pull/10087)) ([be00a26](https://github.com/serverless/serverless/commit/be00a2672cbc90fb33dee5e4bd44a1f6a127eb7c)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Replace warnings with modern counterparts ([#10080](https://github.com/serverless/serverless/pull/10080)) ([4da0899](https://github.com/serverless/serverless/commit/4da08996736c9a8f2b0a0193f7cca4b24f3fc6f1)) ([Piotr Grzesik](https://github.com/pgrzesik))
+  - Update link style for modern logs ([#10096](https://github.com/serverless/serverless/pull/10096)) ([6264296](https://github.com/serverless/serverless/commit/62642964bc38eae77b009ea84d05ba741383570f)) ([Mariusz Nowak](https://github.com/medikoo))
+- Fix typo in `lib/classes/Variables.js` ([#10093](https://github.com/serverless/serverless/issues/10093)) ([49f0913](https://github.com/serverless/serverless/commit/49f0913466110ac32d89c7c044fc781e524b9ed9)) ([Chris Poli](https://github.com/chris-poli))
+
+### Templates
+
+- Add `esbuild` to `gitignore` in `aws-nodejs-typescript` ([#10076](https://github.com/serverless/serverless/pull/10076)) ([865f21f](https://github.com/serverless/serverless/commit/865f21f970340b45c6fb341d01647721f0fa5682)) ([ssshun](https://github.com/ssshun))
+
 ## [2.62.0](https://github.com/serverless/serverless/compare/v2.61.0...v2.62.0) (2021-10-08)
 
 ### Features

@@ -339,7 +339,8 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
             allowCredentials: false
-            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate' # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
+            # Caches on browser and proxy for 10 minutes and doesnt allow proxy to serve out of date content
+            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate'
 ```
 
 CORS header accepts single value too
@@ -367,8 +368,10 @@ module.exports.hello = function (event, context, callback) {
   const response = {
     statusCode: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*', // Required for CORS support to work
-      'Access-Control-Allow-Credentials': true, // Required for cookies, authorization headers with HTTPS
+      // Required for CORS support to work
+      'Access-Control-Allow-Origin': '*',
+      // Required for cookies, authorization headers with HTTPS
+      'Access-Control-Allow-Credentials': true,
     },
     body: JSON.stringify({ message: 'Hello World!' }),
   };
@@ -636,10 +639,12 @@ provider:
     apiKeys:
       - myFirstKey
       - ${opt:stage}-myFirstKey
-      - ${env:MY_API_KEY} # you can hide it in a serverless variable
+      # you can hide it in a serverless variable
+      - ${env:MY_API_KEY}
       - name: myThirdKey
         value: myThirdKeyValue
-      - value: myFourthKeyValue # let cloudformation name the key (recommended when setting api key value)
+      # let cloudformation name the key (recommended when setting api key value)
+      - value: myFourthKeyValue
         description: Api key description # Optional
         customerId: A string that will be set as the customerID for the key # Optional
     usagePlan:
@@ -1649,16 +1654,17 @@ provider:
   name: aws
   runtime: nodejs12.x
 
-  resourcePolicy:
-    - Effect: Allow
-      Principal: '*'
-      Action: execute-api:Invoke
-      Resource:
-        - execute-api:/*/*/*
-      Condition:
-        IpAddress:
-          aws:SourceIp:
-            - '123.123.123.123'
+  apiGateway:
+    resourcePolicy:
+      - Effect: Allow
+        Principal: '*'
+        Action: execute-api:Invoke
+        Resource:
+          - execute-api:/*/*/*
+        Condition:
+          IpAddress:
+            aws:SourceIp:
+              - '123.123.123.123'
 ```
 
 ## Compression
@@ -1676,31 +1682,35 @@ provider:
 
 API Gateway makes it possible to return binary media such as images or files as responses.
 
-Configuring API Gateway to return binary media can be done via the `binaryMediaTypes` config:
+To return binary media in proxy integration, set the `binaryMediaTypes` config:
 
 ```yml
 provider:
   apiGateway:
     binaryMediaTypes:
       - '*/*'
-```
-
-In your Lambda function you need to ensure that the correct `content-type` header is set. Furthermore you might want to return the response body in base64 format.
-
-To convert the request or response payload, you can set the [contentHandling](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-workflow.html) property (if set, the response contentHandling property will be passed to integration responses with 2XXs method response statuses).
-
-```yml
 functions:
-  create:
-    handler: posts.create
+  binaryExample:
+    handler: binaryExample.handler
     events:
       - http:
-          path: posts/create
-          method: post
-          request:
-            contentHandling: CONVERT_TO_TEXT
-          response:
-            contentHandling: CONVERT_TO_TEXT
+          path: binary
+          method: GET
+```
+
+Having that in your Lambda function, you need to ensure that the correct `content-type` header is set and provide a base64 encoded string for a body.
+e.g., Assuming that there's an `image.jpg` file located aside of `binaryExample.js` lambda handler, the handler can be set up as follows:
+
+```js
+const fsp = require('fs').promises;
+const path = require('path');
+
+module.exports.handler = async () => ({
+  statusCode: 200,
+  headers: { 'Content-type': 'image/jpeg' },
+  body: (await fsp.readFile(path.resolve(__dirname, 'image.jpg'))).toString('base64'),
+  isBase64Encoded: true,
+});
 ```
 
 ## Detailed CloudWatch Metrics

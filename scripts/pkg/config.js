@@ -8,13 +8,13 @@ module.exports = {
     // Standalone commands
     '../../commands',
     // Custom resources
-    '../../lib/plugins/aws/customResources/resources',
+    '../../lib/plugins/aws/custom-resources/resources',
     // Basic CF templates
     '../../lib/plugins/aws/package/lib/*.json',
     // Service templates
     '../../lib/plugins/create/templates',
     // Local invocation artifacts
-    '../../lib/plugins/aws/invokeLocal/runtimeWrappers',
+    '../../lib/plugins/aws/invoke-local/runtime-wrappers',
     // Dashboard policies
     '../../node_modules/@serverless/dashboard-plugin/lib/safeguards/policies',
     // Dashboard wrappers

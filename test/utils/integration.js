@@ -11,10 +11,9 @@ const logFetch = require('log').get('fetch');
 const resolveAwsEnv = require('@serverless/test/resolve-aws-env');
 const { load: loadYaml } = require('js-yaml');
 
-const serverlessExec = require('../serverlessBinary');
+const serverlessExec = require('../serverless-binary');
 
 const env = resolveAwsEnv();
-env.SLS_DEBUG = '1';
 
 async function resolveServiceName(cwd) {
   const configContent = await (async () => {

@@ -2,7 +2,7 @@
 
 const AwsProvider = require('../../../../../lib/plugins/aws/provider');
 const AwsRollback = require('../../../../../lib/plugins/aws/rollback');
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 const expect = require('chai').expect;
 const assert = require('chai').assert;
 const sinon = require('sinon');
@@ -15,7 +15,7 @@ describe('AwsRollback', () => {
   let provider;
 
   const createInstance = (options) => {
-    serverless = new Serverless();
+    serverless = new Serverless({ commands: [], options: {} });
     provider = new AwsProvider(serverless, options);
     serverless.setProvider('aws', provider);
     serverless.service.service = 'rollback';

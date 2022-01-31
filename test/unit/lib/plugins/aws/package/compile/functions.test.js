@@ -9,10 +9,10 @@ const chai = require('chai');
 const sinon = require('sinon');
 const AwsProvider = require('../../../../../../../lib/plugins/aws/provider');
 const AwsCompileFunctions = require('../../../../../../../lib/plugins/aws/package/compile/functions');
-const Serverless = require('../../../../../../../lib/Serverless');
+const Serverless = require('../../../../../../../lib/serverless');
 const runServerless = require('../../../../../../utils/run-serverless');
 const fixtures = require('../../../../../../fixtures/programmatic');
-const getHashForFilePath = require('../../../../../../../lib/plugins/aws/package/lib/getHashForFilePath');
+const getHashForFilePath = require('../../../../../../../lib/plugins/aws/package/lib/get-hash-for-file-path');
 
 const { getTmpDirPath, createTmpFile } = require('../../../../../../utils/fs');
 
@@ -32,6 +32,8 @@ describe('AwsCompileFunctions', () => {
     const options = {
       stage: 'dev',
       region: 'us-east-1',
+      commands: [],
+      options: {},
     };
     serverless = new Serverless(options);
     awsProvider = new AwsProvider(serverless, options);
@@ -189,7 +191,7 @@ describe('AwsCompileFunctions', () => {
       const { cfTemplate } = await runServerless({
         fixture: 'function',
         configExt: {
-          disabledDeprecations: ['PROVIDER_IAM_SETTINGS'],
+          disabledDeprecations: ['PROVIDER_IAM_SETTINGS_V3'],
           provider: {
             role: 'role-a',
             iam: { role: 'role-b' },
@@ -334,53 +336,8 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should create a function resource with function level tags', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-          tags: {
-            foo: 'bar',
-            baz: 'qux',
-          },
-        },
-      };
-
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
-          Tags: [
-            { Key: 'foo', Value: 'bar' },
-            { Key: 'baz', Value: 'qux' },
-          ],
         },
       };
 
@@ -439,7 +396,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: 'arn:aws:sns:region:accountid:foo',
@@ -490,7 +447,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -532,7 +489,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -574,7 +531,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: {
@@ -616,7 +573,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               DeadLetterConfig: {
                 TargetArn: 'arn:aws:sns:region:accountid:foo',
@@ -631,192 +588,6 @@ describe('AwsCompileFunctions', () => {
             const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
 
             expect(functionResource).to.deep.equal(compiledFunction);
-          });
-        });
-      });
-    });
-
-    describe('when using awsKmsKeyArn config', () => {
-      let s3Folder;
-      let s3FileName;
-
-      beforeEach(() => {
-        s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-        s3FileName = awsCompileFunctions.serverless.service.package.artifact.split(path.sep).pop();
-      });
-
-      it('should allow if config is provided as a Fn::GetAtt', () => {
-        awsCompileFunctions.serverless.service.functions = {
-          func: {
-            handler: 'func.function.handler',
-            name: 'new-service-dev-func',
-            awsKmsKeyArn: {
-              'Fn::GetAtt': ['MyKms', 'Arn'],
-            },
-          },
-        };
-
-        const compiledFunction = {
-          Type: 'AWS::Lambda::Function',
-          Properties: {
-            Code: {
-              S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
-            },
-            FunctionName: 'new-service-dev-func',
-            Handler: 'func.function.handler',
-            MemorySize: 1024,
-            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-            Runtime: 'nodejs12.x',
-            Timeout: 6,
-            KmsKeyArn: { 'Fn::GetAtt': ['MyKms', 'Arn'] },
-          },
-          DependsOn: ['FuncLogGroup'],
-        };
-
-        return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-          const compiledCfTemplate =
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-          const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
-          expect(functionResource).to.deep.equal(compiledFunction);
-        });
-      });
-
-      it('should allow if config is provided as a Ref', () => {
-        awsCompileFunctions.serverless.service.functions = {
-          func: {
-            handler: 'func.function.handler',
-            name: 'new-service-dev-func',
-            awsKmsKeyArn: {
-              Ref: 'foobar',
-            },
-          },
-        };
-
-        const compiledFunction = {
-          Type: 'AWS::Lambda::Function',
-          Properties: {
-            Code: {
-              S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
-            },
-            FunctionName: 'new-service-dev-func',
-            Handler: 'func.function.handler',
-            MemorySize: 1024,
-            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-            Runtime: 'nodejs12.x',
-            Timeout: 6,
-            KmsKeyArn: { Ref: 'foobar' },
-          },
-          DependsOn: ['FuncLogGroup'],
-        };
-
-        return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-          const compiledCfTemplate =
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-          const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
-          expect(functionResource).to.deep.equal(compiledFunction);
-        });
-      });
-
-      it('should allow if config is provided as a Fn::ImportValue', () => {
-        awsCompileFunctions.serverless.service.functions = {
-          func: {
-            handler: 'func.function.handler',
-            name: 'new-service-dev-func',
-            awsKmsKeyArn: {
-              'Fn::ImportValue': 'KmsKey',
-            },
-          },
-        };
-
-        const compiledFunction = {
-          Type: 'AWS::Lambda::Function',
-          Properties: {
-            Code: {
-              S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              S3Key: 'somedir/new-service.zip',
-            },
-            FunctionName: 'new-service-dev-func',
-            Handler: 'func.function.handler',
-            MemorySize: 1024,
-            Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-            Runtime: 'nodejs12.x',
-            Timeout: 6,
-            KmsKeyArn: { 'Fn::ImportValue': 'KmsKey' },
-          },
-          DependsOn: ['FuncLogGroup'],
-        };
-
-        return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-          const compiledCfTemplate =
-            awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-          const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
-          expect(functionResource).to.deep.equal(compiledFunction);
-        });
-      });
-
-      describe('when IamRoleLambdaExecution is used', () => {
-        beforeEach(() => {
-          // pretend that the IamRoleLambdaExecution is used
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources.IamRoleLambdaExecution =
-            {
-              Properties: {
-                Policies: [
-                  {
-                    PolicyDocument: {
-                      Statement: [],
-                    },
-                  },
-                ],
-              },
-            };
-        });
-
-        it('should create necessary resources if a KMS key arn is provided', () => {
-          awsCompileFunctions.serverless.service.functions = {
-            func: {
-              handler: 'func.function.handler',
-              name: 'new-service-dev-func',
-              awsKmsKeyArn: 'arn:aws:kms:region:accountid:foo/bar',
-            },
-          };
-
-          const compiledFunction = {
-            Type: 'AWS::Lambda::Function',
-            DependsOn: ['FuncLogGroup'],
-            Properties: {
-              Code: {
-                S3Key: `${s3Folder}/${s3FileName}`,
-                S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-              },
-              FunctionName: 'new-service-dev-func',
-              Handler: 'func.function.handler',
-              MemorySize: 1024,
-              Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
-              Timeout: 6,
-              KmsKeyArn: 'arn:aws:kms:region:accountid:foo/bar',
-            },
-          };
-
-          const compiledKmsStatement = {
-            Effect: 'Allow',
-            Action: ['kms:Decrypt'],
-            Resource: ['arn:aws:kms:region:accountid:foo/bar'],
-          };
-
-          return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-            const compiledCfTemplate =
-              awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate;
-
-            const functionResource = compiledCfTemplate.Resources.FuncLambdaFunction;
-            const dlqStatement =
-              compiledCfTemplate.Resources.IamRoleLambdaExecution.Properties.Policies[0]
-                .PolicyDocument.Statement[0];
-
-            expect(functionResource).to.deep.equal(compiledFunction);
-            expect(dlqStatement).to.deep.equal(compiledKmsStatement);
           });
         });
       });
@@ -869,7 +640,7 @@ describe('AwsCompileFunctions', () => {
               Handler: 'func.function.handler',
               MemorySize: 1024,
               Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-              Runtime: 'nodejs12.x',
+              Runtime: 'nodejs14.x',
               Timeout: 6,
               TracingConfig: {
                 Mode: 'Active',
@@ -926,7 +697,7 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
           Environment: {
             Variables: {
@@ -993,45 +764,8 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 128,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 10,
-        },
-      };
-
-      return expect(awsCompileFunctions.compileFunctions()).to.be.fulfilled.then(() => {
-        expect(
-          awsCompileFunctions.serverless.service.provider.compiledCloudFormationTemplate.Resources
-            .FuncLambdaFunction
-        ).to.deep.equal(compiledFunction);
-      });
-    });
-
-    it('should default to the nodejs12.x runtime when no provider runtime is given', () => {
-      const s3Folder = awsCompileFunctions.serverless.service.package.artifactDirectoryName;
-      const s3FileName = awsCompileFunctions.serverless.service.package.artifact
-        .split(path.sep)
-        .pop();
-      awsCompileFunctions.serverless.service.provider.runtime = null;
-      awsCompileFunctions.serverless.service.functions = {
-        func: {
-          handler: 'func.function.handler',
-          name: 'new-service-dev-func',
-        },
-      };
-      const compiledFunction = {
-        Type: 'AWS::Lambda::Function',
-        DependsOn: ['FuncLogGroup'],
-        Properties: {
-          Code: {
-            S3Key: `${s3Folder}/${s3FileName}`,
-            S3Bucket: { Ref: 'ServerlessDeploymentBucket' },
-          },
-          FunctionName: 'new-service-dev-func',
-          Handler: 'func.function.handler',
-          MemorySize: 1024,
-          Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
-          Timeout: 6,
         },
       };
 
@@ -1164,7 +898,7 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           ReservedConcurrentExecutions: 5,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
         },
       };
@@ -1220,7 +954,7 @@ describe('AwsCompileFunctions', () => {
           MemorySize: 1024,
           ReservedConcurrentExecutions: 0,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
         },
       };
@@ -1259,7 +993,7 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
         },
       };
@@ -1297,7 +1031,7 @@ describe('AwsCompileFunctions', () => {
           Handler: 'func.function.handler',
           MemorySize: 1024,
           Role: { 'Fn::GetAtt': ['IamRoleLambdaExecution', 'Arn'] },
-          Runtime: 'nodejs12.x',
+          Runtime: 'nodejs14.x',
           Timeout: 6,
           Layers: ['arn:aws:xxx:*:*'],
         },
@@ -1359,17 +1093,11 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       const imageSha = '6bb600b4d6e1d7cf521097177dd0c4e9ea373edb91984a505333be8ac9455d38';
       const imageWithSha = `000000000000.dkr.ecr.sa-east-1.amazonaws.com/test-lambda-docker@sha256:${imageSha}`;
       const { awsNaming, cfTemplate, fixtureData } = await runServerless({
-        fixture: 'packageArtifact',
+        fixture: 'package-artifact',
         command: 'package',
         configExt: {
-          service: {
-            // TODO: When removing support for service.awsKmsKeyArn, whole service object
-            // should be removed from this configuration
-            name: 'service',
-            awsKmsKeyArn: 'arn:aws:kms:region:accountid:pro/vider',
-          },
-          disabledDeprecations: ['SERVICE_OBJECT_NOTATION', 'AWS_KMS_KEY_ARN'],
           provider: {
+            kmsKeyArn: 'arn:aws:kms:region:accountid:pro/vider',
             vpc: {
               subnetIds: ['subnet-01010101'],
               securityGroupIds: ['sg-0a0a0a0a'],
@@ -1390,7 +1118,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
               providerCfIfEnvVar: { 'Fn::If': ['cond', 'first', 'second'] },
             },
             memorySize: 4096,
-            runtime: 'nodejs10.x',
+            runtime: 'nodejs14.x',
             deploymentBucket: 'com.serverless.deploys',
             versionFunctions: false,
           },
@@ -1401,7 +1129,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
                 subnetIds: ['subnet-02020202'],
                 securityGroupIds: ['sg-1b1b1b1b'],
               },
-              awsKmsKeyArn: 'arn:aws:kms:region:accountid:fun/ction',
+              kmsKeyArn: 'arn:aws:kms:region:accountid:fun/ction',
               tracing: 'PassThrough',
               environment: {
                 funcEnvVarA: 'funcEnvVarAValue',
@@ -1499,27 +1227,27 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       expect(Tags).to.deep.include.members(expectedTags);
     });
 
-    it('should support `service.awsKmsKeyArn`', () => {
+    it('should support `provider.kmsKeyArn`', () => {
       const { KmsKeyArn } = cfResources[naming.getLambdaLogicalId('other')].Properties;
 
-      expect(KmsKeyArn).to.equal(serviceConfig.service.awsKmsKeyArn);
+      expect(KmsKeyArn).to.equal(serviceConfig.provider.kmsKeyArn);
       expect(iamRolePolicyStatements).to.deep.include({
         Effect: 'Allow',
         Action: ['kms:Decrypt'],
-        Resource: [serviceConfig.service.awsKmsKeyArn],
+        Resource: [serviceConfig.provider.kmsKeyArn],
       });
     });
 
-    it('should prefer `functions[].awsKmsKeyArn` over `service.awsKmsKeyArn`', () => {
+    it('should prefer `functions[].kmsKeyArn` over `provider.kmsKeyArn`', () => {
       const fooFunctionConfig = serviceConfig.functions.foo;
 
       const { KmsKeyArn } = cfResources[naming.getLambdaLogicalId('foo')].Properties;
 
-      expect(KmsKeyArn).to.equal(fooFunctionConfig.awsKmsKeyArn);
+      expect(KmsKeyArn).to.equal(fooFunctionConfig.kmsKeyArn);
       expect(iamRolePolicyStatements).to.deep.include({
         Effect: 'Allow',
         Action: ['kms:Decrypt'],
-        Resource: [fooFunctionConfig.awsKmsKeyArn],
+        Resource: [fooFunctionConfig.kmsKeyArn],
       });
     });
 
@@ -1805,7 +1533,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
   });
 
   describe('`provider.lambdaHashingVersion` support', () => {
-    it('CodeSha256 for functions should be the same for default hashing and for 20201221 version', async () => {
+    it('CodeSha256 for functions should be the same for default hashing and for 20200924 version', async () => {
       const { servicePath: serviceDir, updateConfig } = await fixtures.setup('function', {
         configExt: {
           provider: {
@@ -1828,8 +1556,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       ).Properties;
 
       await updateConfig({
+        disabledDeprecations: ['LAMBDA_HASHING_VERSION_PROPERTY'],
         provider: {
-          lambdaHashingVersion: '20201221',
+          lambdaHashingVersion: '20200924',
         },
       });
       const { cfTemplate: updatedTemplate } = await runServerless({
@@ -1920,6 +1649,11 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             fnExternalLayer: {
               handler: 'target.handler',
               layers: [{ Ref: 'ExternalLambdaLayer' }],
+            },
+            fnProvisioned: {
+              handler: 'trigger.handler',
+              maximumRetryAttempts: 0,
+              provisionedConcurrency: 1,
             },
           },
           resources: {
@@ -2026,26 +1760,11 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L907-L948
     });
 
-    it.skip('TODO: should support `functions[].awsKmsKeyArn` as arn string', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1232-L1278
-      //
-      // Confirm also that IAM policy statement was added
-    });
-    it.skip('TODO: should support `functions[].awsKmsKeyArn` as Fn::GetAtt', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1001-L1036
-    });
+    it.skip('TODO: should support `functions[].kmsKeyArn` as Fn::GetAtt', () => {});
 
-    it.skip('TODO: should support `functions[].awsKmsKeyArn` as Ref', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1038-L1073
-    });
+    it.skip('TODO: should support `functions[].kmsKeyArn` as Ref', () => {});
 
-    it.skip('TODO: should support `functions[].awsKmsKeyArn` as Fn::ImportValue', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1075-L1110
-    });
+    it.skip('TODO: should support `functions[].kmsKeyArn` as Fn::ImportValue', () => {});
 
     it.skip('TODO: should support `functions[].environment`', () => {
       // Replacement for
@@ -2070,9 +1789,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1784-L1820
     });
 
-    it.skip('TODO: should default to "nodejs12.x" runtime`', () => {
-      // Replacement for
-      // https://github.com/serverless/serverless/blob/d8527d8b57e7e5f0b94ba704d9f53adb34298d99/lib/plugins/aws/package/compile/functions/index.test.js#L1864-L1899
+    it('should default to "nodejs14.x" runtime`', () => {
+      const funcResource = cfResources[naming.getLambdaLogicalId('target')];
+      expect(funcResource.Properties.Runtime).to.equal('nodejs14.x');
     });
 
     it.skip('TODO: should support `functions[].runtime`', () => {
@@ -2231,12 +1950,17 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
     it('should support `functions[].maximumRetryAttempts`', () => {
       const maximumRetryAttempts =
         serviceConfig.functions.fnMaximumRetryAttempts.maximumRetryAttempts;
+
       expect(maximumRetryAttempts).to.be.a('number');
 
       expect(
         cfResources[naming.getLambdaEventConfigLogicalId('fnMaximumRetryAttempts')].Properties
           .MaximumRetryAttempts
       ).to.equal(maximumRetryAttempts);
+
+      expect(cfResources[naming.getLambdaEventConfigLogicalId('fnProvisioned')].DependsOn).to.equal(
+        naming.getLambdaProvisionedConcurrencyAliasLogicalId('fnProvisioned')
+      );
     });
 
     it('should support `functions[].fileSystemConfig` (with vpc configured on function)', () => {
@@ -2316,7 +2040,12 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
 
   describe('Version hash resolution', () => {
     const testLambdaHashingVersion = (lambdaHashingVersion) => {
-      const configExt = lambdaHashingVersion ? { provider: { lambdaHashingVersion } } : {};
+      const configExt = lambdaHashingVersion
+        ? {
+            provider: { lambdaHashingVersion },
+            disabledDeprecations: ['LAMBDA_HASHING_VERSION_PROPERTY'],
+          }
+        : {};
 
       it.skip('TODO: should create a different version if configuration changed', () => {
         // Replacement for
@@ -2371,7 +2100,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
         };
 
         beforeEach(async () => {
-          const serviceData = await fixtures.setup('functionLayers', { configExt });
+          const serviceData = await fixtures.setup('function-layers', { configExt });
           ({ servicePath: serviceDir, updateConfig } = serviceData);
           const data = await runServerless({
             cwd: serviceDir,
@@ -2392,7 +2121,7 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
             firstCfTemplate.Outputs.LayerFuncLambdaFunctionQualifiedArn.Value.Ref;
 
           await updateConfig({
-            layers: { testLayer: { path: 'testLayer', description: 'Different description' } },
+            layers: { testLayer: { path: 'test-layer', description: 'Different description' } },
           });
 
           const data = await runServerless({
@@ -2515,9 +2244,9 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
           let backupLayer;
 
           beforeEach(async () => {
-            originalLayer = path.join(serviceDir, 'testLayer');
-            sourceChangeLayer = path.join(serviceDir, 'extra_layers', 'testLayerSourceChange');
-            backupLayer = path.join(serviceDir, 'extra_layers', 'testLayerBackup');
+            originalLayer = path.join(serviceDir, 'test-layer');
+            sourceChangeLayer = path.join(serviceDir, 'extra-layers', 'test-layer-source-change');
+            backupLayer = path.join(serviceDir, 'extra-layers', 'test-layer-backup');
 
             await fsp.rename(originalLayer, backupLayer);
             await fsp.rename(sourceChangeLayer, originalLayer);
@@ -2550,15 +2279,50 @@ describe('lib/plugins/aws/package/compile/functions/index.test.js', () => {
       testLambdaHashingVersion();
     });
 
-    describe('lambdaHashingVersion: 20201221', () => {
-      testLambdaHashingVersion('20201221');
+    describe('lambdaHashingVersion: 20200924', () => {
+      testLambdaHashingVersion('20200924');
+    });
+
+    describe('lambdaHashingVersion migration', () => {
+      it('should enforce new description configuration and version with `--enforce-hash-update` flag', async () => {
+        const { servicePath: serviceDir } = await fixtures.setup('function', {
+          configExt: {
+            disabledDeprecations: ['LAMBDA_HASHING_VERSION_V2'],
+            provider: {
+              lambdaHashingVersion: null,
+            },
+          },
+        });
+
+        const { cfTemplate: originalTemplate, awsNaming } = await runServerless({
+          cwd: serviceDir,
+          command: 'package',
+        });
+        const originalVersionArn =
+          originalTemplate.Outputs.BasicLambdaFunctionQualifiedArn.Value.Ref;
+
+        const { cfTemplate: updatedTemplate } = await runServerless({
+          cwd: serviceDir,
+          command: 'deploy',
+          lastLifecycleHookName: 'before:deploy:deploy',
+          options: {
+            'enforce-hash-update': true,
+          },
+        });
+        const updatedVersionArn = updatedTemplate.Outputs.BasicLambdaFunctionQualifiedArn.Value.Ref;
+
+        expect(originalVersionArn).not.to.equal(updatedVersionArn);
+        expect(
+          updatedTemplate.Resources[awsNaming.getLambdaLogicalId('basic')].Properties.Description
+        ).to.equal('temporary-description-to-enforce-hash-update');
+      });
     });
   });
 
   describe.skip('TODO: Download package artifact from S3 bucket', () => {
     before(async () => {
       await runServerless({
-        fixture: 'packageArtifact',
+        fixture: 'package-artifact',
         command: 'deploy',
         configExt: {
           package: { artifact: 'some s3 url' },

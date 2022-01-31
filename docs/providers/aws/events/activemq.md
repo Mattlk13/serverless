@@ -1,19 +1,19 @@
 <!--
-title: Serverless Framework - AWS Lambda Events - MQ
+title: Serverless Framework - AWS Lambda Events - ActiveMQ
 menuText: ActiveMQ
-description:  Setting up AWS Active MQ Events with AWS Lambda via the Serverless Framework
+description:  Setting up AWS ActiveMQ Events with AWS Lambda via the Serverless Framework
 layout: Doc
 -->
 
 <!-- DOCS-SITE-LINK:START automatically generated  -->
 
-### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/mq)
+### [Read this on the main serverless docs site](https://www.serverless.com/framework/docs/providers/aws/events/activemq)
 
 <!-- DOCS-SITE-LINK:END -->
 
-# MQ
+# ActiveMQ
 
-An Active MQ message broker can be used as an event source for AWS Lambda.
+An ActiveMQ message broker can be used as an event source for AWS Lambda.
 
 ## Simple event definition
 
@@ -54,9 +54,10 @@ functions:
           basicAuthArn: arn:aws:secretsmanager:us-east-1:01234567890:secret:MySecret
 ```
 
-## Specifying batch size
+## Specifying batch size and batch window
 
 You can also specify `batchSize` of number of items to retrieve in a single batch. If not specified, this will default to `100`.
+Likewise `maximumBatchingWindow` can be set to determine the amount of time the Lambda spends gathering records before invoking the function. The default is 0, but **if you set `batchSize` to more than 10, you must set `maximumBatchingWindow` to at least 1**. The maximum is 300.
 
 ```yml
 functions:
@@ -67,6 +68,7 @@ functions:
           arn: arn:aws:mq:us-east-1:0000:broker:ExampleMQBroker:b-xxx-xxx
           queue: queue-name
           batchSize: 5000
+          maximumBatchingWindow: 30
           basicAuthArn: arn:aws:secretsmanager:us-east-1:01234567890:secret:MySecret
 ```
 

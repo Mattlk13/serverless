@@ -5,10 +5,10 @@ const fs = require('fs');
 const path = require('path');
 const fse = require('fs-extra');
 const Create = require('../../../../../lib/plugins/create/create');
-const Serverless = require('../../../../../lib/Serverless');
+const Serverless = require('../../../../../lib/serverless');
 const sinon = require('sinon');
-const walkDirSync = require('../../../../../lib/utils/fs/walkDirSync');
-const download = require('../../../../../lib/utils/downloadTemplateFromRepo');
+const walkDirSync = require('../../../../../lib/utils/fs/walk-dir-sync');
+const download = require('../../../../../lib/utils/download-template-from-repo');
 const { getTmpDirPath } = require('../../../../utils/fs');
 
 chai.use(require('chai-as-promised'));
@@ -21,7 +21,7 @@ describe('Create', () => {
   let create;
 
   before(() => {
-    const serverless = new Serverless();
+    const serverless = new Serverless({ commands: [], options: {} });
     const options = {};
     create = new Create(serverless, options);
     create.serverless.cli = new serverless.classes.CLI();
@@ -179,7 +179,7 @@ describe('Create', () => {
         expect(dirContent).to.include(path.join('src', 'functions', 'hello', 'mock.json'));
         expect(dirContent).to.include(path.join('src', 'functions', 'hello', 'schema.ts'));
         expect(dirContent).to.include(path.join('src', 'functions', 'index.ts'));
-        expect(dirContent).to.include(path.join('src', 'libs', 'apiGateway.ts'));
+        expect(dirContent).to.include(path.join('src', 'libs', 'api-gateway.ts'));
         expect(dirContent).to.include(path.join('src', 'libs', 'lambda.ts'));
         expect(dirContent).to.include('tsconfig.json');
         expect(dirContent).to.include('tsconfig.paths.json');
